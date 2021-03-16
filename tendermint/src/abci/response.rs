@@ -25,7 +25,7 @@ use super::{
     //Event,
     event::Event,
     params::ConsensusParams,
-    types::{Snapshot, ValidatorUpdate},
+    types::{Evidence, Snapshot, ValidatorUpdate},
 };
 
 /// Returns an exception (undocumented, nondeterministic).
@@ -115,13 +115,58 @@ pub struct Query {
     pub codespace: String,
 }
 
-/// Returns events that occurred when beginning a new block.
-///
-/// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#beginblock)
+/// Finalize block
 #[derive(Clone, PartialEq, Eq, Debug, Default)]
-pub struct BeginBlock {
-    /// Events that occurred while beginning the block.
-    pub events: Vec<Event>,
+pub struct FinalizeBlock {
+    //FIXME(ash): this should not be optional
+    /// consenus updates
+    pub updates: Option<ConsensusUpdates>,
+    /// tx results
+    pub tx_results: Vec<ResponseTx>,
+}
+
+/// Prepare proposal
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
+pub struct PrepareProposal {
+    //FIXME(Ash): add BlockData field, header field
+}
+
+/// Verify header
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
+pub struct VerifyHeader {
+    /// accept header
+    pub accept_header: bool,
+    /// evidence
+    pub evidence: Vec<Evidence>,
+}
+
+/// Process proposal
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
+pub struct ProcessProposal {
+    /// accept block
+    pub accept_block: bool,
+    /// evidence
+    pub evidence: Vec<Evidence>,
+}
+
+/// Revert proposal
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
+pub struct RevertProposal {}
+
+/// Extend vote
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
+pub struct ExtendVote {
+    /// unsigned app vote data
+    pub unsigned_app_vote_data: Bytes,
+    /// self-authenticating app vote data
+    pub self_authenticating_app_data: Bytes,
+}
+
+/// Verify vote extension
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
+pub struct VerifyVoteExtension {
+    /// result
+    pub result: bool,
 }
 
 /// Returns the result of checking a transaction for mempool inclusion.
@@ -160,7 +205,7 @@ pub struct CheckTx {
 ///
 /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#delivertx)
 #[derive(Clone, PartialEq, Eq, Debug, Default)]
-pub struct DeliverTx {
+pub struct ResponseTx {
     /// The response code.
     ///
     /// This code should be `0` only if the transaction is fully valid. However,
@@ -191,7 +236,7 @@ pub struct DeliverTx {
 ///
 /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#endblock)
 #[derive(Clone, PartialEq, Eq, Debug, Default)]
-pub struct EndBlock {
+pub struct ConsensusUpdates {
     /// Changes to the validator set, if any.
     ///
     /// Setting the voting power to 0 removes a validator.
@@ -343,23 +388,12 @@ pub enum Response {
     ///
     /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#query)
     Query(Query),
-    /// Returns events that occurred when beginning a new block.
-    ///
-    /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#beginblock)
-    BeginBlock(BeginBlock),
     /// Returns the result of checking a transaction for mempool inclusion.
     ///
     /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#checktx)
     CheckTx(CheckTx),
-    /// Returns events that occurred while executing a transaction against the
-    /// application state.
-    ///
-    /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#delivertx)
-    DeliverTx(DeliverTx),
-    /// Returns validator updates that occur after the end of a block.
-    ///
-    /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#endblock)
-    EndBlock(EndBlock),
+    /// Finalize block
+    FinalizeBlock(FinalizeBlock),
     /// Returns the result of persisting the application state.
     ///
     /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#commit)
@@ -388,6 +422,18 @@ pub enum Response {
     ///
     /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#applysnapshotchunk)
     ApplySnapshotChunk(ApplySnapshotChunk),
+    /// Prepare proposal
+    PrepareProposal(PrepareProposal),
+    /// Verify header
+    VerifyHeader(VerifyHeader),
+    /// Process proposal
+    ProcessProposal(ProcessProposal),
+    /// Revert proposal
+    RevertProposal(RevertProposal),
+    /// Extend vote
+    ExtendVote(ExtendVote),
+    /// Verify vote extension
+    VerifyVoteExtension(VerifyVoteExtension),
 }
 
 /// The consensus category of ABCI responses.
@@ -397,33 +443,38 @@ pub enum ConsensusResponse {
     ///
     /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#initchain)
     InitChain(InitChain),
-    /// Returns events that occurred when beginning a new block.
-    ///
-    /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#beginblock)
-    BeginBlock(BeginBlock),
-    /// Returns events that occurred while executing a transaction against the
-    /// application state.
-    ///
-    /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#delivertx)
-    DeliverTx(DeliverTx),
-    /// Returns validator updates that occur after the end of a block.
-    ///
-    /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#endblock)
-    EndBlock(EndBlock),
     /// Returns the result of persisting the application state.
     ///
     /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#commit)
     Commit(Commit),
+    /// Finalize block
+    FinalizeBlock(FinalizeBlock),
+    /// Prepare proposal
+    PrepareProposal(PrepareProposal),
+    /// Verify header
+    VerifyHeader(VerifyHeader),
+    /// Process proposal
+    ProcessProposal(ProcessProposal),
+    /// Revert proposal
+    RevertProposal(RevertProposal),
+    /// Extend vote
+    ExtendVote(ExtendVote),
+    /// Verify vote extension
+    VerifyVoteExtension(VerifyVoteExtension),
 }
 
 impl From<ConsensusResponse> for Response {
     fn from(req: ConsensusResponse) -> Self {
         match req {
             ConsensusResponse::InitChain(x) => Self::InitChain(x),
-            ConsensusResponse::BeginBlock(x) => Self::BeginBlock(x),
-            ConsensusResponse::DeliverTx(x) => Self::DeliverTx(x),
-            ConsensusResponse::EndBlock(x) => Self::EndBlock(x),
             ConsensusResponse::Commit(x) => Self::Commit(x),
+            ConsensusResponse::FinalizeBlock(x) => Self::FinalizeBlock(x),
+            ConsensusResponse::PrepareProposal(x) => Self::PrepareProposal(x),
+            ConsensusResponse::VerifyHeader(x) => Self::VerifyHeader(x),
+            ConsensusResponse::ProcessProposal(x) => Self::ProcessProposal(x),
+            ConsensusResponse::RevertProposal(x) => Self::RevertProposal(x),
+            ConsensusResponse::ExtendVote(x) => Self::ExtendVote(x),
+            ConsensusResponse::VerifyVoteExtension(x) => Self::VerifyVoteExtension(x),
         }
     }
 }
@@ -433,10 +484,14 @@ impl TryFrom<Response> for ConsensusResponse {
     fn try_from(req: Response) -> Result<Self, Self::Error> {
         match req {
             Response::InitChain(x) => Ok(Self::InitChain(x)),
-            Response::BeginBlock(x) => Ok(Self::BeginBlock(x)),
-            Response::DeliverTx(x) => Ok(Self::DeliverTx(x)),
-            Response::EndBlock(x) => Ok(Self::EndBlock(x)),
             Response::Commit(x) => Ok(Self::Commit(x)),
+            Response::FinalizeBlock(x) => Ok(Self::FinalizeBlock(x)),
+            Response::PrepareProposal(x) => Ok(Self::PrepareProposal(x)),
+            Response::VerifyHeader(x) => Ok(Self::VerifyHeader(x)),
+            Response::ProcessProposal(x) => Ok(Self::ProcessProposal(x)),
+            Response::RevertProposal(x) => Ok(Self::RevertProposal(x)),
+            Response::ExtendVote(x) => Ok(Self::ExtendVote(x)),
+            Response::VerifyVoteExtension(x) => Ok(Self::VerifyVoteExtension(x)),
             _ => Err("wrong request type"),
         }
     }
@@ -706,107 +761,6 @@ impl TryFrom<pb::ResponseQuery> for Query {
 
 impl Protobuf<pb::ResponseQuery> for Query {}
 
-impl From<BeginBlock> for pb::ResponseBeginBlock {
-    fn from(begin_block: BeginBlock) -> Self {
-        Self {
-            events: begin_block.events.into_iter().map(Into::into).collect(),
-        }
-    }
-}
-
-impl TryFrom<pb::ResponseBeginBlock> for BeginBlock {
-    type Error = crate::Error;
-
-    fn try_from(begin_block: pb::ResponseBeginBlock) -> Result<Self, Self::Error> {
-        Ok(Self {
-            events: begin_block
-                .events
-                .into_iter()
-                .map(TryInto::try_into)
-                .collect::<Result<_, _>>()?,
-        })
-    }
-}
-
-impl Protobuf<pb::ResponseBeginBlock> for BeginBlock {}
-
-impl From<DeliverTx> for pb::ResponseDeliverTx {
-    fn from(deliver_tx: DeliverTx) -> Self {
-        Self {
-            code: deliver_tx.code,
-            data: deliver_tx.data,
-            log: deliver_tx.log,
-            info: deliver_tx.info,
-            gas_wanted: deliver_tx.gas_wanted,
-            gas_used: deliver_tx.gas_used,
-            events: deliver_tx.events.into_iter().map(Into::into).collect(),
-            codespace: deliver_tx.codespace,
-        }
-    }
-}
-
-impl TryFrom<pb::ResponseDeliverTx> for DeliverTx {
-    type Error = crate::Error;
-
-    fn try_from(deliver_tx: pb::ResponseDeliverTx) -> Result<Self, Self::Error> {
-        Ok(Self {
-            code: deliver_tx.code,
-            data: deliver_tx.data,
-            log: deliver_tx.log,
-            info: deliver_tx.info,
-            gas_wanted: deliver_tx.gas_wanted,
-            gas_used: deliver_tx.gas_used,
-            events: deliver_tx
-                .events
-                .into_iter()
-                .map(TryInto::try_into)
-                .collect::<Result<_, _>>()?,
-            codespace: deliver_tx.codespace,
-        })
-    }
-}
-
-impl Protobuf<pb::ResponseDeliverTx> for DeliverTx {}
-
-impl From<EndBlock> for pb::ResponseEndBlock {
-    fn from(end_block: EndBlock) -> Self {
-        Self {
-            validator_updates: end_block
-                .validator_updates
-                .into_iter()
-                .map(Into::into)
-                .collect(),
-            consensus_param_updates: end_block.consensus_param_updates.map(Into::into),
-            events: end_block.events.into_iter().map(Into::into).collect(),
-        }
-    }
-}
-
-impl TryFrom<pb::ResponseEndBlock> for EndBlock {
-    type Error = crate::Error;
-
-    fn try_from(end_block: pb::ResponseEndBlock) -> Result<Self, Self::Error> {
-        Ok(Self {
-            validator_updates: end_block
-                .validator_updates
-                .into_iter()
-                .map(TryInto::try_into)
-                .collect::<Result<_, _>>()?,
-            consensus_param_updates: end_block
-                .consensus_param_updates
-                .map(TryInto::try_into)
-                .transpose()?,
-            events: end_block
-                .events
-                .into_iter()
-                .map(TryInto::try_into)
-                .collect::<Result<_, _>>()?,
-        })
-    }
-}
-
-impl Protobuf<pb::ResponseEndBlock> for EndBlock {}
-
 impl From<Commit> for pb::ResponseCommit {
     fn from(commit: Commit) -> Self {
         Self {
@@ -974,6 +928,247 @@ impl TryFrom<pb::ResponseApplySnapshotChunk> for ApplySnapshotChunk {
 
 impl Protobuf<pb::ResponseApplySnapshotChunk> for ApplySnapshotChunk {}
 
+impl From<ResponseTx> for pb::ResponseTx {
+    fn from(response_tx: ResponseTx) -> Self {
+        Self {
+            code: response_tx.code,
+            data: response_tx.data,
+            log: response_tx.log,
+            info: response_tx.info,
+            gas_wanted: response_tx.gas_wanted,
+            gas_used: response_tx.gas_used,
+            events: response_tx.events.into_iter().map(Into::into).collect(),
+            codespace: response_tx.codespace,
+        }
+    }
+}
+
+impl TryFrom<pb::ResponseTx> for ResponseTx {
+    type Error = crate::Error;
+
+    fn try_from(response_tx: pb::ResponseTx) -> Result<Self, Self::Error> {
+        Ok(Self {
+            code: response_tx.code,
+            data: response_tx.data,
+            log: response_tx.log,
+            info: response_tx.info,
+            gas_wanted: response_tx.gas_wanted,
+            gas_used: response_tx.gas_used,
+            events: response_tx
+                .events
+                .into_iter()
+                .map(TryInto::try_into)
+                .collect::<Result<_, _>>()?,
+            codespace: response_tx.codespace,
+        })
+    }
+}
+
+impl Protobuf<pb::ResponseTx> for ResponseTx {}
+
+impl From<ConsensusUpdates> for pb::ConsensusUpdates {
+    fn from(consensus_updates: ConsensusUpdates) -> Self {
+        Self {
+            validator_updates: consensus_updates
+                .validator_updates
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            consensus_param_updates: consensus_updates.consensus_param_updates.map(Into::into),
+            events: consensus_updates
+                .events
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+        }
+    }
+}
+
+impl TryFrom<pb::ConsensusUpdates> for ConsensusUpdates {
+    type Error = crate::Error;
+
+    fn try_from(consensus_updates: pb::ConsensusUpdates) -> Result<Self, Self::Error> {
+        Ok(Self {
+            validator_updates: consensus_updates
+                .validator_updates
+                .into_iter()
+                .map(TryInto::try_into)
+                .collect::<Result<_, _>>()?,
+            consensus_param_updates: consensus_updates
+                .consensus_param_updates
+                .map(TryInto::try_into)
+                .transpose()?,
+            events: consensus_updates
+                .events
+                .into_iter()
+                .map(TryInto::try_into)
+                .collect::<Result<_, _>>()?,
+        })
+    }
+}
+
+impl Protobuf<pb::ConsensusUpdates> for ConsensusUpdates {}
+
+impl From<FinalizeBlock> for pb::ResponseFinalizeBlock {
+    fn from(finalize_block: FinalizeBlock) -> Self {
+        Self {
+            updates: finalize_block
+                .updates
+                .and_then(|updates| updates.try_into().ok()),
+            tx_results: finalize_block
+                .tx_results
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+        }
+    }
+}
+
+impl TryFrom<pb::ResponseFinalizeBlock> for FinalizeBlock {
+    type Error = crate::Error;
+
+    fn try_from(finalize_block: pb::ResponseFinalizeBlock) -> Result<Self, Self::Error> {
+        Ok(Self {
+            updates: finalize_block
+                .updates
+                .and_then(|updates| updates.try_into().ok()),
+            tx_results: finalize_block
+                .tx_results
+                .into_iter()
+                .map(TryInto::try_into)
+                .collect::<Result<_, _>>()?,
+        })
+    }
+}
+
+impl Protobuf<pb::ResponseFinalizeBlock> for FinalizeBlock {}
+
+impl From<PrepareProposal> for pb::ResponsePrepareProposal {
+    fn from(_prepare_proposal: PrepareProposal) -> Self {
+        Self {}
+    }
+}
+
+impl TryFrom<pb::ResponsePrepareProposal> for PrepareProposal {
+    type Error = crate::Error;
+
+    fn try_from(_prepare_proposal: pb::ResponsePrepareProposal) -> Result<Self, Self::Error> {
+        Ok(Self {})
+    }
+}
+
+impl Protobuf<pb::ResponsePrepareProposal> for PrepareProposal {}
+
+impl From<VerifyHeader> for pb::ResponseVerifyHeader {
+    fn from(verify_header: VerifyHeader) -> Self {
+        Self {
+            accept_header: verify_header.accept_header,
+            evidence: verify_header.evidence.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl TryFrom<pb::ResponseVerifyHeader> for VerifyHeader {
+    type Error = crate::Error;
+
+    fn try_from(verify_header: pb::ResponseVerifyHeader) -> Result<Self, Self::Error> {
+        Ok(Self {
+            accept_header: verify_header.accept_header,
+            evidence: verify_header
+                .evidence
+                .into_iter()
+                .map(TryInto::try_into)
+                .collect::<Result<_, _>>()?,
+        })
+    }
+}
+
+impl Protobuf<pb::ResponseVerifyHeader> for VerifyHeader {}
+
+impl From<ProcessProposal> for pb::ResponseProcessProposal {
+    fn from(process_proposal: ProcessProposal) -> Self {
+        Self {
+            accept_block: process_proposal.accept_block,
+            evidence: process_proposal
+                .evidence
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+        }
+    }
+}
+
+impl TryFrom<pb::ResponseProcessProposal> for ProcessProposal {
+    type Error = crate::Error;
+
+    fn try_from(process_proposal: pb::ResponseProcessProposal) -> Result<Self, Self::Error> {
+        Ok(Self {
+            accept_block: process_proposal.accept_block,
+            evidence: process_proposal
+                .evidence
+                .into_iter()
+                .map(TryInto::try_into)
+                .collect::<Result<_, _>>()?,
+        })
+    }
+}
+
+impl Protobuf<pb::ResponseProcessProposal> for ProcessProposal {}
+
+impl From<RevertProposal> for pb::ResponseRevertProposal {
+    fn from(_revert_proposal: RevertProposal) -> Self {
+        Self {}
+    }
+}
+
+impl TryFrom<pb::ResponseRevertProposal> for RevertProposal {
+    type Error = crate::Error;
+
+    fn try_from(_revert_proposal: pb::ResponseRevertProposal) -> Result<Self, Self::Error> {
+        Ok(Self {})
+    }
+}
+
+impl From<ExtendVote> for pb::ResponseExtendVote {
+    fn from(extend_vote: ExtendVote) -> Self {
+        Self {
+            unsigned_app_vote_data: extend_vote.unsigned_app_vote_data.into(),
+            self_authenticating_app_data: extend_vote.self_authenticating_app_data.into(),
+        }
+    }
+}
+
+impl TryFrom<pb::ResponseExtendVote> for ExtendVote {
+    type Error = crate::Error;
+
+    fn try_from(extend_vote: pb::ResponseExtendVote) -> Result<Self, Self::Error> {
+        Ok(Self {
+            unsigned_app_vote_data: extend_vote.unsigned_app_vote_data.into(),
+            self_authenticating_app_data: extend_vote.self_authenticating_app_data.into(),
+        })
+    }
+}
+
+impl From<VerifyVoteExtension> for pb::ResponseVerifyVoteExtension {
+    fn from(verify_vote_extension: VerifyVoteExtension) -> Self {
+        Self {
+            result: verify_vote_extension.result,
+        }
+    }
+}
+
+impl TryFrom<pb::ResponseVerifyVoteExtension> for VerifyVoteExtension {
+    type Error = crate::Error;
+
+    fn try_from(
+        verify_vote_extension: pb::ResponseVerifyVoteExtension,
+    ) -> Result<Self, Self::Error> {
+        Ok(Self {
+            result: verify_vote_extension.result,
+        })
+    }
+}
+
 impl From<Response> for pb::Response {
     fn from(response: Response) -> pb::Response {
         use pb::response::Value;
@@ -984,10 +1179,14 @@ impl From<Response> for pb::Response {
             Response::Info(x) => Some(Value::Info(x.into())),
             Response::InitChain(x) => Some(Value::InitChain(x.into())),
             Response::Query(x) => Some(Value::Query(x.into())),
-            Response::BeginBlock(x) => Some(Value::BeginBlock(x.into())),
+            Response::FinalizeBlock(x) => Some(Value::FinalizeBlock(x.into())),
             Response::CheckTx(x) => Some(Value::CheckTx(x.into())),
-            Response::DeliverTx(x) => Some(Value::DeliverTx(x.into())),
-            Response::EndBlock(x) => Some(Value::EndBlock(x.into())),
+            Response::PrepareProposal(x) => Some(Value::PrepareProposal(x.into())),
+            Response::VerifyHeader(x) => Some(Value::VerifyHeader(x.into())),
+            Response::ProcessProposal(x) => Some(Value::ProcessProposal(x.into())),
+            Response::RevertProposal(x) => Some(Value::RevertProposal(x.into())),
+            Response::ExtendVote(x) => Some(Value::ExtendVote(x.into())),
+            Response::VerifyVoteExtension(x) => Some(Value::VerifyVoteExtension(x.into())),
             Response::Commit(x) => Some(Value::Commit(x.into())),
             Response::ListSnapshots(x) => Some(Value::ListSnapshots(x.into())),
             Response::OfferSnapshot(x) => Some(Value::OfferSnapshot(x.into())),
@@ -1010,10 +1209,14 @@ impl TryFrom<pb::Response> for Response {
             Some(Value::Info(x)) => Ok(Response::Info(x.try_into()?)),
             Some(Value::InitChain(x)) => Ok(Response::InitChain(x.try_into()?)),
             Some(Value::Query(x)) => Ok(Response::Query(x.try_into()?)),
-            Some(Value::BeginBlock(x)) => Ok(Response::BeginBlock(x.try_into()?)),
+            Some(Value::FinalizeBlock(x)) => Ok(Response::FinalizeBlock(x.try_into()?)),
             Some(Value::CheckTx(x)) => Ok(Response::CheckTx(x.try_into()?)),
-            Some(Value::DeliverTx(x)) => Ok(Response::DeliverTx(x.try_into()?)),
-            Some(Value::EndBlock(x)) => Ok(Response::EndBlock(x.try_into()?)),
+            Some(Value::PrepareProposal(x)) => Ok(Response::PrepareProposal(x.try_into()?)),
+            Some(Value::VerifyHeader(x)) => Ok(Response::VerifyHeader(x.try_into()?)),
+            Some(Value::ProcessProposal(x)) => Ok(Response::ProcessProposal(x.try_into()?)),
+            Some(Value::RevertProposal(x)) => Ok(Response::RevertProposal(x.try_into()?)),
+            Some(Value::ExtendVote(x)) => Ok(Response::ExtendVote(x.try_into()?)),
+            Some(Value::VerifyVoteExtension(x)) => Ok(Response::VerifyVoteExtension(x.try_into()?)),
             Some(Value::Commit(x)) => Ok(Response::Commit(x.try_into()?)),
             Some(Value::ListSnapshots(x)) => Ok(Response::ListSnapshots(x.try_into()?)),
             Some(Value::OfferSnapshot(x)) => Ok(Response::OfferSnapshot(x.try_into()?)),

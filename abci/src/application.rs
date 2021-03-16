@@ -7,13 +7,15 @@ pub mod kvstore;
 
 use tendermint_proto::abci::request::Value;
 use tendermint_proto::abci::{
-    response, Request, RequestApplySnapshotChunk, RequestBeginBlock, RequestCheckTx,
-    RequestDeliverTx, RequestEcho, RequestEndBlock, RequestInfo, RequestInitChain,
-    RequestLoadSnapshotChunk, RequestOfferSnapshot, RequestQuery, Response,
-    ResponseApplySnapshotChunk, ResponseBeginBlock, ResponseCheckTx, ResponseCommit,
-    ResponseDeliverTx, ResponseEcho, ResponseEndBlock, ResponseFlush, ResponseInfo,
-    ResponseInitChain, ResponseListSnapshots, ResponseLoadSnapshotChunk, ResponseOfferSnapshot,
-    ResponseQuery,
+    response, Request, RequestApplySnapshotChunk, RequestCheckTx, RequestEcho, RequestExtendVote,
+    RequestFinalizeBlock, RequestInfo, RequestInitChain, RequestLoadSnapshotChunk,
+    RequestOfferSnapshot, RequestPrepareProposal, RequestProcessProposal, RequestQuery,
+    RequestRevertProposal, RequestVerifyHeader, RequestVerifyVoteExtension, Response,
+    ResponseApplySnapshotChunk, ResponseCheckTx, ResponseCommit, ResponseEcho, ResponseExtendVote,
+    ResponseFinalizeBlock, ResponseFlush, ResponseInfo, ResponseInitChain, ResponseListSnapshots,
+    ResponseLoadSnapshotChunk, ResponseOfferSnapshot, ResponsePrepareProposal,
+    ResponseProcessProposal, ResponseQuery, ResponseRevertProposal, ResponseVerifyHeader,
+    ResponseVerifyVoteExtension,
 };
 
 /// An ABCI application.
@@ -52,18 +54,41 @@ pub trait Application: Send + Clone + 'static {
         Default::default()
     }
 
-    /// Signals the beginning of a new block, prior to any `DeliverTx` calls.
-    fn begin_block(&self, _request: RequestBeginBlock) -> ResponseBeginBlock {
+    /// Finalize block
+    fn finalize_block(&self, _request: RequestFinalizeBlock) -> ResponseFinalizeBlock {
         Default::default()
     }
 
-    /// Apply a transaction to the application's state.
-    fn deliver_tx(&self, _request: RequestDeliverTx) -> ResponseDeliverTx {
+    /// Prepare proposal
+    fn prepare_proposal(&self, _request: RequestPrepareProposal) -> ResponsePrepareProposal {
         Default::default()
     }
 
-    /// Signals the end of a block.
-    fn end_block(&self, _request: RequestEndBlock) -> ResponseEndBlock {
+    /// Verify header
+    fn verify_header(&self, _request: RequestVerifyHeader) -> ResponseVerifyHeader {
+        Default::default()
+    }
+
+    /// Process proposal
+    fn process_proposal(&self, _request: RequestProcessProposal) -> ResponseProcessProposal {
+        Default::default()
+    }
+
+    /// Process proposal
+    fn revert_proposal(&self, _request: RequestRevertProposal) -> ResponseRevertProposal {
+        Default::default()
+    }
+
+    /// Extend vote
+    fn extend_vote(&self, _request: RequestExtendVote) -> ResponseExtendVote {
+        Default::default()
+    }
+
+    /// Verify vote extension
+    fn verify_vote_extension(
+        &self,
+        _request: RequestVerifyVoteExtension,
+    ) -> ResponseVerifyVoteExtension {
         Default::default()
     }
 
@@ -120,10 +145,7 @@ impl<A: Application> RequestDispatcher for A {
                 Value::Info(req) => response::Value::Info(self.info(req)),
                 Value::InitChain(req) => response::Value::InitChain(self.init_chain(req)),
                 Value::Query(req) => response::Value::Query(self.query(req)),
-                Value::BeginBlock(req) => response::Value::BeginBlock(self.begin_block(req)),
                 Value::CheckTx(req) => response::Value::CheckTx(self.check_tx(req)),
-                Value::DeliverTx(req) => response::Value::DeliverTx(self.deliver_tx(req)),
-                Value::EndBlock(req) => response::Value::EndBlock(self.end_block(req)),
                 Value::Commit(_) => response::Value::Commit(self.commit()),
                 Value::ListSnapshots(_) => response::Value::ListSnapshots(self.list_snapshots()),
                 Value::OfferSnapshot(req) => {
@@ -134,6 +156,23 @@ impl<A: Application> RequestDispatcher for A {
                 }
                 Value::ApplySnapshotChunk(req) => {
                     response::Value::ApplySnapshotChunk(self.apply_snapshot_chunk(req))
+                }
+                Value::FinalizeBlock(req) => {
+                    response::Value::FinalizeBlock(self.finalize_block(req))
+                }
+                Value::PrepareProposal(req) => {
+                    response::Value::PrepareProposal(self.prepare_proposal(req))
+                }
+                Value::VerifyHeader(req) => response::Value::VerifyHeader(self.verify_header(req)),
+                Value::ProcessProposal(req) => {
+                    response::Value::ProcessProposal(self.process_proposal(req))
+                }
+                Value::RevertProposal(req) => {
+                    response::Value::RevertProposal(self.revert_proposal(req))
+                }
+                Value::ExtendVote(req) => response::Value::ExtendVote(self.extend_vote(req)),
+                Value::VerifyVoteExtension(req) => {
+                    response::Value::VerifyVoteExtension(self.verify_vote_extension(req))
                 }
             }),
         }

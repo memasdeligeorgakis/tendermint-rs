@@ -7,7 +7,7 @@
 
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Request {
-    #[prost(oneof="request::Value", tags="1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14")]
+    #[prost(oneof="request::Value", tags="1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18")]
     pub value: ::core::option::Option<request::Value>,
 }
 /// Nested message and enum types in `Request`.
@@ -25,23 +25,31 @@ pub mod request {
         #[prost(message, tag="5")]
         Query(super::RequestQuery),
         #[prost(message, tag="6")]
-        BeginBlock(super::RequestBeginBlock),
+        FinalizeBlock(super::RequestFinalizeBlock),
         #[prost(message, tag="7")]
         CheckTx(super::RequestCheckTx),
         #[prost(message, tag="8")]
-        DeliverTx(super::RequestDeliverTx),
-        #[prost(message, tag="9")]
-        EndBlock(super::RequestEndBlock),
-        #[prost(message, tag="10")]
         Commit(super::RequestCommit),
-        #[prost(message, tag="11")]
+        #[prost(message, tag="9")]
         ListSnapshots(super::RequestListSnapshots),
-        #[prost(message, tag="12")]
+        #[prost(message, tag="10")]
         OfferSnapshot(super::RequestOfferSnapshot),
-        #[prost(message, tag="13")]
+        #[prost(message, tag="11")]
         LoadSnapshotChunk(super::RequestLoadSnapshotChunk),
-        #[prost(message, tag="14")]
+        #[prost(message, tag="12")]
         ApplySnapshotChunk(super::RequestApplySnapshotChunk),
+        #[prost(message, tag="13")]
+        PrepareProposal(super::RequestPrepareProposal),
+        #[prost(message, tag="14")]
+        VerifyHeader(super::RequestVerifyHeader),
+        #[prost(message, tag="15")]
+        ProcessProposal(super::RequestProcessProposal),
+        #[prost(message, tag="16")]
+        RevertProposal(super::RequestRevertProposal),
+        #[prost(message, tag="17")]
+        ExtendVote(super::RequestExtendVote),
+        #[prost(message, tag="18")]
+        VerifyVoteExtension(super::RequestVerifyVoteExtension),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -90,16 +98,9 @@ pub struct RequestQuery {
     pub prove: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RequestBeginBlock {
-    #[prost(bytes="bytes", tag="1")]
-    pub hash: ::prost::bytes::Bytes,
-    #[prost(message, optional, tag="2")]
-    pub header: ::core::option::Option<super::types::Header>,
-    #[prost(message, optional, tag="3")]
-    pub last_commit_info: ::core::option::Option<LastCommitInfo>,
-    #[prost(message, repeated, tag="4")]
-    pub byzantine_validators: ::prost::alloc::vec::Vec<Evidence>,
+pub struct RequestFinalizeBlock {
 }
+
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RequestCheckTx {
     #[prost(bytes="bytes", tag="1")]
@@ -107,16 +108,7 @@ pub struct RequestCheckTx {
     #[prost(enumeration="CheckTxType", tag="2")]
     pub r#type: i32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RequestDeliverTx {
-    #[prost(bytes="bytes", tag="1")]
-    pub tx: ::prost::bytes::Bytes,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RequestEndBlock {
-    #[prost(int64, tag="1")]
-    pub height: i64,
-}
+
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RequestCommit {
 }
@@ -154,12 +146,61 @@ pub struct RequestApplySnapshotChunk {
     #[prost(string, tag="3")]
     pub sender: ::prost::alloc::string::String,
 }
+
+/// Prepare proposal
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RequestPrepareProposal {
+    //FIXME(Ash): add block field, unbatched header field
+}
+
+/// Verify header
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RequestVerifyHeader {
+    //FIXME(Ash): add header field
+
+    #[prost(bool, tag="1")]
+    pub is_validator: bool,
+}
+
+/// Process proposal
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RequestProcessProposal {
+    //FIXME(Ash): add block field
+}
+
+/// Revert proposal
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RequestRevertProposal {
+    #[prost(uint64, tag="1")]
+    pub height: u64,
+    #[prost(uint64, tag="2")]
+    pub round: u64,
+}
+
+/// Extend vote
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RequestExtendVote {
+    #[prost(uint64, tag="1")]
+    pub height: u64,
+    #[prost(uint64, tag="2")]
+    pub round: u64,
+}
+
+/// Verify vote extension
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RequestVerifyVoteExtension {
+    #[prost(bytes, tag="1")]
+    pub signed_app_vote_data: Vec<u8>,
+    #[prost(bytes, tag="2")]
+    pub self_authenticating_app_vote_data: Vec<u8>,
+}
+
 //----------------------------------------
 // Response types
 
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Response {
-    #[prost(oneof="response::Value", tags="1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15")]
+    #[prost(oneof="response::Value", tags="1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19")]
     pub value: ::core::option::Option<response::Value>,
 }
 /// Nested message and enum types in `Response`.
@@ -179,23 +220,31 @@ pub mod response {
         #[prost(message, tag="6")]
         Query(super::ResponseQuery),
         #[prost(message, tag="7")]
-        BeginBlock(super::ResponseBeginBlock),
+        FinalizeBlock(super::ResponseFinalizeBlock),
         #[prost(message, tag="8")]
         CheckTx(super::ResponseCheckTx),
         #[prost(message, tag="9")]
-        DeliverTx(super::ResponseDeliverTx),
-        #[prost(message, tag="10")]
-        EndBlock(super::ResponseEndBlock),
-        #[prost(message, tag="11")]
         Commit(super::ResponseCommit),
-        #[prost(message, tag="12")]
+        #[prost(message, tag="10")]
         ListSnapshots(super::ResponseListSnapshots),
-        #[prost(message, tag="13")]
+        #[prost(message, tag="11")]
         OfferSnapshot(super::ResponseOfferSnapshot),
-        #[prost(message, tag="14")]
+        #[prost(message, tag="12")]
         LoadSnapshotChunk(super::ResponseLoadSnapshotChunk),
-        #[prost(message, tag="15")]
+        #[prost(message, tag="13")]
         ApplySnapshotChunk(super::ResponseApplySnapshotChunk),
+        #[prost(message, tag="14")]
+        PrepareProposal(super::ResponsePrepareProposal),
+        #[prost(message, tag="15")]
+        VerifyHeader(super::ResponseVerifyHeader),
+        #[prost(message, tag="16")]
+        ProcessProposal(super::ResponseProcessProposal),
+        #[prost(message, tag="17")]
+        RevertProposal(super::ResponseRevertProposal),
+        #[prost(message, tag="18")]
+        ExtendVote(super::ResponseExtendVote),
+        #[prost(message, tag="19")]
+        VerifyVoteExtension(super::ResponseVerifyVoteExtension),
     }
 }
 /// nondeterministic
@@ -265,11 +314,6 @@ pub struct ResponseQuery {
     pub codespace: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ResponseBeginBlock {
-    #[prost(message, repeated, tag="1")]
-    pub events: ::prost::alloc::vec::Vec<Event>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResponseCheckTx {
     #[prost(uint32, tag="1")]
     pub code: u32,
@@ -291,7 +335,15 @@ pub struct ResponseCheckTx {
     pub codespace: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ResponseDeliverTx {
+pub struct ResponseFinalizeBlock {
+    //FIXME(ash): this should not be optional
+    #[prost(message, optional, tag="1")]
+    pub updates: ::std::option::Option<ConsensusUpdates>,
+    #[prost(message, repeated, tag="2")]
+    pub tx_results: ::std::vec::Vec<ResponseTx>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResponseTx {
     #[prost(uint32, tag="1")]
     pub code: u32,
     #[prost(bytes="bytes", tag="2")]
@@ -313,7 +365,7 @@ pub struct ResponseDeliverTx {
     pub codespace: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ResponseEndBlock {
+pub struct ConsensusUpdates {
     #[prost(message, repeated, tag="1")]
     pub validator_updates: ::prost::alloc::vec::Vec<ValidatorUpdate>,
     #[prost(message, optional, tag="2")]
@@ -393,6 +445,39 @@ pub mod response_apply_snapshot_chunk {
         RejectSnapshot = 5,
     }
 }
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResponsePrepareProposal {
+    //FIXME(Ash): add BlockData field, header field
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResponseVerifyHeader {
+    #[prost(bool, tag="1")]
+    pub accept_header: bool,
+    #[prost(message, repeated, tag="2")]
+    pub evidence: ::std::vec::Vec<Evidence>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResponseProcessProposal {
+    #[prost(bool, tag="1")]
+    pub accept_block: bool,
+    #[prost(message, repeated, tag="2")]
+    pub evidence: ::std::vec::Vec<Evidence>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResponseRevertProposal {
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResponseExtendVote {
+    #[prost(bytes, tag="1")]
+    pub unsigned_app_vote_data: ::prost::bytes::Bytes,
+    #[prost(bytes, tag="2")]
+    pub self_authenticating_app_data: ::prost::bytes::Bytes,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResponseVerifyVoteExtension {
+    #[prost(bool, tag="1")]
+    pub result: bool,
+}
 //----------------------------------------
 // Misc.
 
@@ -404,7 +489,7 @@ pub struct LastCommitInfo {
     pub votes: ::prost::alloc::vec::Vec<VoteInfo>,
 }
 /// Event allows application developers to attach additional information to
-/// ResponseBeginBlock, ResponseEndBlock, ResponseCheckTx and ResponseDeliverTx.
+/// ResponseFinalizeBlock and ResponseCheckTx.
 /// Later, transactions may be queried using these events.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Event {
@@ -436,7 +521,7 @@ pub struct TxResult {
     #[prost(bytes="bytes", tag="3")]
     pub tx: ::prost::bytes::Bytes,
     #[prost(message, optional, tag="4")]
-    pub result: ::core::option::Option<ResponseDeliverTx>,
+    pub result: ::core::option::Option<ResponseTx>,
 }
 //----------------------------------------
 // Blockchain Types
