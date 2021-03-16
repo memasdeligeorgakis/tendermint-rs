@@ -4,11 +4,9 @@
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AbciResponses {
     #[prost(message, repeated, tag="1")]
-    pub deliver_txs: ::prost::alloc::vec::Vec<super::abci::ResponseDeliverTx>,
+    pub deliver_txs: ::prost::alloc::vec::Vec<super::abci::ResponseTx>,
     #[prost(message, optional, tag="2")]
-    pub end_block: ::core::option::Option<super::abci::ResponseEndBlock>,
-    #[prost(message, optional, tag="3")]
-    pub begin_block: ::core::option::Option<super::abci::ResponseBeginBlock>,
+    pub finalize_block: ::core::option::Option<super::abci::ResponseFinalizeBlock>,
 }
 /// ValidatorsInfo represents the latest validator set, or the last height it changed
 #[derive(Clone, PartialEq, ::prost::Message)]

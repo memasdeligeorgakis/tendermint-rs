@@ -2,10 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use tendermint::{
-    abci::responses::{BeginBlock, EndBlock},
-    Block,
-};
+use tendermint::{abci::responses::FinalizeBlock, Block};
 
 use crate::query::EventType;
 use crate::{response::Wrapper, Response};
@@ -46,8 +43,7 @@ pub enum EventData {
     #[serde(alias = "tendermint/event/NewBlock")]
     NewBlock {
         block: Option<Block>,
-        result_begin_block: Option<BeginBlock>,
-        result_end_block: Option<EndBlock>,
+        result_finalize_block: Option<FinalizeBlock>,
     },
     #[serde(alias = "tendermint/event/Tx")]
     Tx {

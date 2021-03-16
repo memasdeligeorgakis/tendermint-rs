@@ -19,11 +19,11 @@ use std::convert::{TryFrom, TryInto};
 use bytes::Bytes;
 use chrono::{DateTime, Utc};
 
-use crate::block;
+//use crate::block;
 
 use super::{
     params::ConsensusParams,
-    types::{Evidence, LastCommitInfo, Snapshot, ValidatorUpdate},
+    types::{Snapshot, ValidatorUpdate},
     MethodKind,
 };
 
@@ -98,28 +98,9 @@ pub struct Query {
     pub prove: bool,
 }
 
-/// Signals the beginning of a new block.
-///
-/// Called prior to any [`DeliverTx`]s. The `header` contains the height,
-/// timestamp, and more -- it exactly matches the Tendermint block header.
-///
-/// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#beginblock)
+/// Finalize block
 #[derive(Clone, PartialEq, Eq, Debug)]
-pub struct BeginBlock {
-    /// The block's hash.
-    ///
-    /// This can be derived from the block header.
-    pub hash: Bytes,
-    /// The block header.
-    pub header: block::Header,
-    /// Information about the last commit.
-    ///
-    /// This includes the round, the list of validators, and which validators
-    /// signed the last block.
-    pub last_commit_info: LastCommitInfo,
-    /// Evidence of validator misbehavior.
-    pub byzantine_validators: Vec<Evidence>,
-}
+pub struct FinalizeBlock {}
 
 /// Execute a transaction against the application state.
 ///
@@ -256,6 +237,53 @@ pub struct ApplySnapshotChunk {
     pub sender: String,
 }
 
+/// Prepare proposal
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct PrepareProposal {
+    //FIXME(Ash): add block field, unbatched header field
+}
+
+/// Verify header
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct VerifyHeader {
+    //FIXME(Ash): add header field
+    /// is validator
+    pub is_validator: bool,
+}
+
+/// Process proposal
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct ProcessProposal {
+    //FIXME(Ash): add block field
+}
+
+/// Revert proposal
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct RevertProposal {
+    /// height
+    pub height: u64,
+    /// round
+    pub round: u64,
+}
+
+/// Extend vote
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct ExtendVote {
+    /// height
+    pub height: u64,
+    /// round
+    pub round: u64,
+}
+
+/// Verify vote extension
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct VerifyVoteExtension {
+    /// signed app vote data
+    pub signed_app_vote_data: Bytes,
+    /// self-authenticating vote data
+    pub self_authenticating_app_vote_data: Bytes,
+}
+
 /// All possible ABCI requests.
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Request {
@@ -279,13 +307,8 @@ pub enum Request {
     ///
     /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#query)
     Query(Query),
-    /// Signals the beginning of a new block.
-    ///
-    /// Called prior to any [`DeliverTx`]s. The `header` contains the height,
-    /// timestamp, and more -- it exactly matches the Tendermint block header.
-    ///
-    /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#beginblock)
-    BeginBlock(BeginBlock),
+    /// Finalize block
+    FinalizeBlock(FinalizeBlock),
     /// Check whether a transaction should be included in the mempool.
     ///
     /// `CheckTx` is not involved in processing blocks, only in deciding whether a
@@ -298,16 +321,6 @@ pub enum Request {
     ///
     /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#checktx)
     CheckTx(CheckTx),
-    /// Execute a transaction against the application state.
-    ///
-    /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#delivertx)
-    DeliverTx(DeliverTx),
-    /// Signals the end of a block.
-    ///
-    /// Called after all transactions, and prior to each `Commit`.
-    ///
-    /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#endblock)
-    EndBlock(EndBlock),
     /// Signals the application that it can write the queued state transitions
     /// from the block to its state.
     ///
@@ -364,6 +377,18 @@ pub enum Request {
     ///
     /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#applysnapshotchunk)
     ApplySnapshotChunk(ApplySnapshotChunk),
+    /// Prepare proposal
+    PrepareProposal(PrepareProposal),
+    /// Verify header
+    VerifyHeader(VerifyHeader),
+    /// Process proposal
+    ProcessProposal(ProcessProposal),
+    /// Revert proposal
+    RevertProposal(RevertProposal),
+    /// Extend vote
+    ExtendVote(ExtendVote),
+    /// Verify vote extension
+    VerifyVoteExtension(VerifyVoteExtension),
 }
 
 impl Request {
@@ -373,9 +398,13 @@ impl Request {
         match self {
             Flush => MethodKind::Flush,
             InitChain(_) => MethodKind::Consensus,
-            BeginBlock(_) => MethodKind::Consensus,
-            DeliverTx(_) => MethodKind::Consensus,
-            EndBlock(_) => MethodKind::Consensus,
+            FinalizeBlock(_) => MethodKind::Consensus,
+            PrepareProposal(_) => MethodKind::Consensus,
+            VerifyHeader(_) => MethodKind::Consensus,
+            ProcessProposal(_) => MethodKind::Consensus,
+            RevertProposal(_) => MethodKind::Consensus,
+            ExtendVote(_) => MethodKind::Consensus,
+            VerifyVoteExtension(_) => MethodKind::Consensus,
             Commit => MethodKind::Consensus,
             CheckTx(_) => MethodKind::Mempool,
             ListSnapshots => MethodKind::Snapshot,
@@ -396,23 +425,20 @@ pub enum ConsensusRequest {
     ///
     /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#initchain)
     InitChain(InitChain),
-    /// Signals the beginning of a new block.
-    ///
-    /// Called prior to any [`DeliverTx`]s. The `header` contains the height,
-    /// timestamp, and more -- it exactly matches the Tendermint block header.
-    ///
-    /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#beginblock)
-    BeginBlock(BeginBlock),
-    /// Execute a transaction against the application state.
-    ///
-    /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#delivertx)
-    DeliverTx(DeliverTx),
-    /// Signals the end of a block.
-    ///
-    /// Called after all transactions, and prior to each `Commit`.
-    ///
-    /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#endblock)
-    EndBlock(EndBlock),
+    /// Finalize block
+    FinalizeBlock(FinalizeBlock),
+    /// Prepare proposal
+    PrepareProposal(PrepareProposal),
+    /// Verify header
+    VerifyHeader(VerifyHeader),
+    /// Process proposal
+    ProcessProposal(ProcessProposal),
+    /// Revert proposal
+    RevertProposal(RevertProposal),
+    /// Extend vote
+    ExtendVote(ExtendVote),
+    /// Verify vote extension
+    VerifyVoteExtension(VerifyVoteExtension),
     /// Signals the application that it can write the queued state transitions
     /// from the block to its state.
     ///
@@ -424,9 +450,13 @@ impl From<ConsensusRequest> for Request {
     fn from(req: ConsensusRequest) -> Self {
         match req {
             ConsensusRequest::InitChain(x) => Self::InitChain(x),
-            ConsensusRequest::BeginBlock(x) => Self::BeginBlock(x),
-            ConsensusRequest::DeliverTx(x) => Self::DeliverTx(x),
-            ConsensusRequest::EndBlock(x) => Self::EndBlock(x),
+            ConsensusRequest::FinalizeBlock(x) => Self::FinalizeBlock(x),
+            ConsensusRequest::PrepareProposal(x) => Self::PrepareProposal(x),
+            ConsensusRequest::VerifyHeader(x) => Self::VerifyHeader(x),
+            ConsensusRequest::ProcessProposal(x) => Self::ProcessProposal(x),
+            ConsensusRequest::RevertProposal(x) => Self::RevertProposal(x),
+            ConsensusRequest::ExtendVote(x) => Self::ExtendVote(x),
+            ConsensusRequest::VerifyVoteExtension(x) => Self::VerifyVoteExtension(x),
             ConsensusRequest::Commit => Self::Commit,
         }
     }
@@ -437,9 +467,13 @@ impl TryFrom<Request> for ConsensusRequest {
     fn try_from(req: Request) -> Result<Self, Self::Error> {
         match req {
             Request::InitChain(x) => Ok(Self::InitChain(x)),
-            Request::BeginBlock(x) => Ok(Self::BeginBlock(x)),
-            Request::DeliverTx(x) => Ok(Self::DeliverTx(x)),
-            Request::EndBlock(x) => Ok(Self::EndBlock(x)),
+            Request::FinalizeBlock(x) => Ok(Self::FinalizeBlock(x)),
+            Request::PrepareProposal(x) => Ok(Self::PrepareProposal(x)),
+            Request::VerifyHeader(x) => Ok(Self::VerifyHeader(x)),
+            Request::ProcessProposal(x) => Ok(Self::ProcessProposal(x)),
+            Request::RevertProposal(x) => Ok(Self::RevertProposal(x)),
+            Request::ExtendVote(x) => Ok(Self::ExtendVote(x)),
+            Request::VerifyVoteExtension(x) => Ok(Self::VerifyVoteExtension(x)),
             Request::Commit => Ok(Self::Commit),
             _ => Err("wrong request type"),
         }
@@ -719,78 +753,129 @@ impl TryFrom<pb::RequestQuery> for Query {
 
 impl Protobuf<pb::RequestQuery> for Query {}
 
-impl From<BeginBlock> for pb::RequestBeginBlock {
-    fn from(begin_block: BeginBlock) -> Self {
+impl From<FinalizeBlock> for pb::RequestFinalizeBlock {
+    fn from(_finalize_block: FinalizeBlock) -> Self {
+        Self {}
+    }
+}
+
+impl TryFrom<pb::RequestFinalizeBlock> for FinalizeBlock {
+    type Error = crate::Error;
+
+    fn try_from(_finalize_block: pb::RequestFinalizeBlock) -> Result<Self, Self::Error> {
+        Ok(Self {})
+    }
+}
+
+impl From<PrepareProposal> for pb::RequestPrepareProposal {
+    fn from(_prepare_proposal: PrepareProposal) -> Self {
+        Self {}
+    }
+}
+
+impl TryFrom<pb::RequestPrepareProposal> for PrepareProposal {
+    type Error = crate::Error;
+
+    fn try_from(_prepare_proposal: pb::RequestPrepareProposal) -> Result<Self, Self::Error> {
+        Ok(Self {})
+    }
+}
+
+impl From<VerifyHeader> for pb::RequestVerifyHeader {
+    fn from(verify_header: VerifyHeader) -> Self {
         Self {
-            hash: begin_block.hash,
-            header: Some(begin_block.header.into()),
-            last_commit_info: Some(begin_block.last_commit_info.into()),
-            byzantine_validators: begin_block
-                .byzantine_validators
-                .into_iter()
-                .map(Into::into)
-                .collect(),
+            is_validator: verify_header.is_validator,
         }
     }
 }
 
-impl TryFrom<pb::RequestBeginBlock> for BeginBlock {
+impl TryFrom<pb::RequestVerifyHeader> for VerifyHeader {
     type Error = crate::Error;
 
-    fn try_from(begin_block: pb::RequestBeginBlock) -> Result<Self, Self::Error> {
+    fn try_from(verify_header: pb::RequestVerifyHeader) -> Result<Self, Self::Error> {
         Ok(Self {
-            hash: begin_block.hash,
-            header: begin_block.header.ok_or("missing header")?.try_into()?,
-            last_commit_info: begin_block
-                .last_commit_info
-                .ok_or("missing last commit info")?
-                .try_into()?,
-            byzantine_validators: begin_block
-                .byzantine_validators
-                .into_iter()
-                .map(TryInto::try_into)
-                .collect::<Result<_, _>>()?,
+            is_validator: verify_header.is_validator,
         })
     }
 }
 
-impl Protobuf<pb::RequestBeginBlock> for BeginBlock {}
-
-impl From<DeliverTx> for pb::RequestDeliverTx {
-    fn from(deliver_tx: DeliverTx) -> Self {
-        Self { tx: deliver_tx.tx }
+impl From<ProcessProposal> for pb::RequestProcessProposal {
+    fn from(_process_proposal: ProcessProposal) -> Self {
+        Self {}
     }
 }
 
-impl TryFrom<pb::RequestDeliverTx> for DeliverTx {
+impl TryFrom<pb::RequestProcessProposal> for ProcessProposal {
     type Error = crate::Error;
 
-    fn try_from(deliver_tx: pb::RequestDeliverTx) -> Result<Self, Self::Error> {
-        Ok(Self { tx: deliver_tx.tx })
+    fn try_from(_process_proposal: pb::RequestProcessProposal) -> Result<Self, Self::Error> {
+        Ok(Self {})
     }
 }
 
-impl Protobuf<pb::RequestDeliverTx> for DeliverTx {}
-
-impl From<EndBlock> for pb::RequestEndBlock {
-    fn from(end_block: EndBlock) -> Self {
+impl From<RevertProposal> for pb::RequestRevertProposal {
+    fn from(revert_proposal: RevertProposal) -> Self {
         Self {
-            height: end_block.height,
+            height: revert_proposal.height,
+            round: revert_proposal.round,
         }
     }
 }
 
-impl TryFrom<pb::RequestEndBlock> for EndBlock {
+impl TryFrom<pb::RequestRevertProposal> for RevertProposal {
     type Error = crate::Error;
 
-    fn try_from(end_block: pb::RequestEndBlock) -> Result<Self, Self::Error> {
+    fn try_from(revert_proposal: pb::RequestRevertProposal) -> Result<Self, Self::Error> {
         Ok(Self {
-            height: end_block.height,
+            height: revert_proposal.height,
+            round: revert_proposal.round,
         })
     }
 }
 
-impl Protobuf<pb::RequestEndBlock> for EndBlock {}
+impl From<ExtendVote> for pb::RequestExtendVote {
+    fn from(extend_vote: ExtendVote) -> Self {
+        Self {
+            height: extend_vote.height,
+            round: extend_vote.round,
+        }
+    }
+}
+
+impl TryFrom<pb::RequestExtendVote> for ExtendVote {
+    type Error = crate::Error;
+
+    fn try_from(extend_vote: pb::RequestExtendVote) -> Result<Self, Self::Error> {
+        Ok(Self {
+            height: extend_vote.height,
+            round: extend_vote.round,
+        })
+    }
+}
+
+impl From<VerifyVoteExtension> for pb::RequestVerifyVoteExtension {
+    fn from(verify_vote_extension: VerifyVoteExtension) -> Self {
+        Self {
+            signed_app_vote_data: verify_vote_extension.signed_app_vote_data,
+            self_authenticating_app_vote_data: verify_vote_extension
+                .self_authenticating_app_vote_data,
+        }
+    }
+}
+
+impl TryFrom<pb::RequestVerifyVoteExtension> for VerifyVoteExtension {
+    type Error = crate::Error;
+
+    fn try_from(
+        verify_vote_extension: pb::RequestVerifyVoteExtension,
+    ) -> Result<Self, Self::Error> {
+        Ok(Self {
+            signed_app_vote_data: verify_vote_extension.signed_app_vote_data,
+            self_authenticating_app_vote_data: verify_vote_extension
+                .self_authenticating_app_vote_data,
+        })
+    }
+}
 
 impl From<CheckTx> for pb::RequestCheckTx {
     fn from(check_tx: CheckTx) -> Self {
@@ -901,10 +986,14 @@ impl From<Request> for pb::Request {
             Request::Info(x) => Some(Value::Info(x.into())),
             Request::InitChain(x) => Some(Value::InitChain(x.into())),
             Request::Query(x) => Some(Value::Query(x.into())),
-            Request::BeginBlock(x) => Some(Value::BeginBlock(x.into())),
+            Request::FinalizeBlock(x) => Some(Value::FinalizeBlock(x.into())),
             Request::CheckTx(x) => Some(Value::CheckTx(x.into())),
-            Request::DeliverTx(x) => Some(Value::DeliverTx(x.into())),
-            Request::EndBlock(x) => Some(Value::EndBlock(x.into())),
+            Request::PrepareProposal(x) => Some(Value::PrepareProposal(x.into())),
+            Request::VerifyHeader(x) => Some(Value::VerifyHeader(x.into())),
+            Request::ProcessProposal(x) => Some(Value::ProcessProposal(x.into())),
+            Request::RevertProposal(x) => Some(Value::RevertProposal(x.into())),
+            Request::ExtendVote(x) => Some(Value::ExtendVote(x.into())),
+            Request::VerifyVoteExtension(x) => Some(Value::VerifyVoteExtension(x.into())),
             Request::Commit => Some(Value::Commit(Default::default())),
             Request::ListSnapshots => Some(Value::ListSnapshots(Default::default())),
             Request::OfferSnapshot(x) => Some(Value::OfferSnapshot(x.into())),
@@ -926,10 +1015,14 @@ impl TryFrom<pb::Request> for Request {
             Some(Value::Info(x)) => Ok(Request::Info(x.try_into()?)),
             Some(Value::InitChain(x)) => Ok(Request::InitChain(x.try_into()?)),
             Some(Value::Query(x)) => Ok(Request::Query(x.try_into()?)),
-            Some(Value::BeginBlock(x)) => Ok(Request::BeginBlock(x.try_into()?)),
+            Some(Value::FinalizeBlock(x)) => Ok(Request::FinalizeBlock(x.try_into()?)),
+            Some(Value::PrepareProposal(x)) => Ok(Request::PrepareProposal(x.try_into()?)),
+            Some(Value::VerifyHeader(x)) => Ok(Request::VerifyHeader(x.try_into()?)),
+            Some(Value::ProcessProposal(x)) => Ok(Request::ProcessProposal(x.try_into()?)),
+            Some(Value::RevertProposal(x)) => Ok(Request::RevertProposal(x.try_into()?)),
+            Some(Value::ExtendVote(x)) => Ok(Request::ExtendVote(x.try_into()?)),
+            Some(Value::VerifyVoteExtension(x)) => Ok(Request::VerifyVoteExtension(x.try_into()?)),
             Some(Value::CheckTx(x)) => Ok(Request::CheckTx(x.try_into()?)),
-            Some(Value::DeliverTx(x)) => Ok(Request::DeliverTx(x.try_into()?)),
-            Some(Value::EndBlock(x)) => Ok(Request::EndBlock(x.try_into()?)),
             Some(Value::Commit(pb::RequestCommit {})) => Ok(Request::Commit),
             Some(Value::ListSnapshots(pb::RequestListSnapshots {})) => Ok(Request::ListSnapshots),
             Some(Value::OfferSnapshot(x)) => Ok(Request::OfferSnapshot(x.try_into()?)),

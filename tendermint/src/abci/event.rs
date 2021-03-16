@@ -134,8 +134,8 @@ use tendermint_proto::Protobuf;
 impl From<EventAttribute> for pb::EventAttribute {
     fn from(event: EventAttribute) -> Self {
         Self {
-            key: event.key.into_bytes().into(),
-            value: event.value.into_bytes().into(),
+            key: event.key,
+            value: event.value,
             index: event.index,
         }
     }
@@ -146,8 +146,8 @@ impl TryFrom<pb::EventAttribute> for EventAttribute {
 
     fn try_from(event: pb::EventAttribute) -> Result<Self, Self::Error> {
         Ok(Self {
-            key: String::from_utf8(event.key.to_vec())?,
-            value: String::from_utf8(event.value.to_vec())?,
+            key: event.key,
+            value: event.value,
             index: event.index,
         })
     }
