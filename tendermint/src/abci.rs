@@ -1,18 +1,18 @@
 //! Application BlockChain Interface (ABCI)
-//!
-//! NOTE: This module contains types for ABCI responses as consumed from RPC
-//! endpoints. It does not contain an ABCI protocol implementation.
-//!
-//! For that, see:
-//!
-//! <https://github.com/tendermint/rust-abci>
 
 mod code;
 mod data;
 mod gas;
 mod info;
+mod kind;
 mod log;
 mod path;
+
+pub mod params;
+pub mod request;
+pub mod response;
+pub mod types;
+
 pub mod responses;
 pub mod tag;
 pub mod transaction;
@@ -26,4 +26,10 @@ pub use self::{
     path::Path,
     responses::{DeliverTx, Event, Responses},
     transaction::Transaction,
+};
+
+pub use self::{
+    kind::MethodKind,
+    request::{ConsensusRequest, InfoRequest, MempoolRequest, Request, SnapshotRequest},
+    response::{ConsensusResponse, InfoResponse, MempoolResponse, Response, SnapshotResponse},
 };
