@@ -72,6 +72,7 @@ pub use self::{
     transaction::Transaction,
 };
 
+#[doc(inline)]
 pub use self::{
     kind::MethodKind,
     request::{ConsensusRequest, InfoRequest, MempoolRequest, Request, SnapshotRequest},
