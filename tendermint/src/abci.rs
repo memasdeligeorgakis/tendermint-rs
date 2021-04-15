@@ -53,10 +53,14 @@ pub mod request;
 pub mod response;
 pub mod types;
 
+#[doc(hidden)]
 pub mod responses;
+#[doc(hidden)]
 pub mod tag;
+#[doc(hidden)]
 pub mod transaction;
 
+#[doc(hidden)]
 pub use self::{
     code::Code,
     data::Data,
