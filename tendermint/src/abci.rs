@@ -8,6 +8,10 @@ mod kind;
 mod log;
 mod path;
 
+/// Events. Hide this later once types are merged.
+pub mod event;
+//pub use event::{Event, EventAttribute};
+
 pub mod params;
 pub mod request;
 pub mod response;
