@@ -69,7 +69,7 @@ pub struct Exception {
 /// Returns a string sent in the request, to test an ABCI implementation.
 ///
 /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#echo)
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct Echo {
     /// The message sent in the request.
     pub message: String,
@@ -78,7 +78,7 @@ pub struct Echo {
 /// Returns information about the application state.
 ///
 /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#info)
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct Info {
     /// Some arbitrary information.
     pub data: String,
@@ -95,7 +95,7 @@ pub struct Info {
 /// Returned on genesis after initializing chain state.
 ///
 /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#initchain)
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct InitChain {
     /// Initial consensus-critical parameters (optional).
     pub consensus_params: Option<ConsensusParams>,
@@ -115,7 +115,7 @@ pub struct InitChain {
 /// Returns data queried from the application.
 ///
 /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#query)
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct Query {
     /// The response code for the query.
     pub code: u32,
@@ -149,7 +149,7 @@ pub struct Query {
 /// Returns events that occurred when beginning a new block.
 ///
 /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#beginblock)
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct BeginBlock {
     /// Events that occurred while beginning the block.
     pub events: Vec<Event>,
@@ -158,7 +158,7 @@ pub struct BeginBlock {
 /// Returns the result of checking a transaction for mempool inclusion.
 ///
 /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#checktx)
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct CheckTx {
     /// The response code.
     ///
@@ -190,7 +190,7 @@ pub struct CheckTx {
 /// application state.
 ///
 /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#delivertx)
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct DeliverTx {
     /// The response code.
     ///
@@ -221,7 +221,7 @@ pub struct DeliverTx {
 /// Returns validator updates that occur after the end of a block.
 ///
 /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#endblock)
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct EndBlock {
     /// Changes to the validator set, if any.
     ///
@@ -236,7 +236,7 @@ pub struct EndBlock {
 /// Returns the result of persisting the application state.
 ///
 /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#commit)
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct Commit {
     /// The Merkle root hash of the application state
     ///
@@ -250,7 +250,7 @@ pub struct Commit {
 /// Returns a list of local state snapshots.
 ///
 /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#listsnapshots)
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct ListSnapshots {
     /// A list of local state snapshots.
     pub snapshots: Vec<Snapshot>,
@@ -279,10 +279,17 @@ pub enum OfferSnapshot {
     /// Reject all snapshots from the sender(s), try others
     RejectSender = 5,
 }
+
+impl Default for OfferSnapshot {
+    fn default() -> Self {
+        Self::Unknown
+    }
+}
+
 /// Returns a snapshot chunk from the application.
 ///
 /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#loadsnapshotchunk)
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct LoadSnapshotChunk {
     /// The binary chunk contents, in an arbitrary format.
     ///
@@ -297,7 +304,7 @@ pub struct LoadSnapshotChunk {
 /// application.
 ///
 /// [ABCI documentation](https://docs.tendermint.com/master/spec/abci/abci.html#applysnapshotchunk)
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct ApplySnapshotChunk {
     /// The result of applying the snapshot chunk.
     pub result: ApplySnapshotChunkResult,
@@ -334,6 +341,12 @@ pub enum ApplySnapshotChunkResult {
     RetrySnapshot = 4,
     /// Reject this snapshot, try a different one.
     RejectSnapshot = 5,
+}
+
+impl Default for ApplySnapshotChunkResult {
+    fn default() -> Self {
+        Self::Unknown
+    }
 }
 
 /// All possible ABCI responses.
