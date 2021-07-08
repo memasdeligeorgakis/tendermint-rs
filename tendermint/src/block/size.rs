@@ -20,13 +20,3 @@ pub struct Size {
     #[serde(with = "serializers::from_str")]
     pub time_iota_ms: i64,
 }
-
-impl From<Size> for RawSize {
-    fn from(value: Size) -> Self {
-        // Todo: make the struct more robust so this can become infallible.
-        RawSize {
-            max_bytes: value.max_bytes as i64,
-            max_gas: value.max_gas,
-        }
-    }
-}
