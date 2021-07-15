@@ -15,8 +15,4 @@ pub struct Size {
     /// Maximum amount of gas which can be spent on a block
     #[serde(with = "serializers::from_str")]
     pub max_gas: i64,
-
-    /// This parameter has no value anymore in Tendermint-core
-    #[serde(with = "serializers::from_str")]
-    pub time_iota_ms: i64,
 }
