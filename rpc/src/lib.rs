@@ -44,7 +44,7 @@ pub mod endpoint;
 pub mod error;
 pub mod event;
 mod id;
-mod method;
+pub mod method;
 mod order;
 mod paging;
 pub mod query;
