@@ -184,3 +184,5 @@ document.getElementById('verify-btn').addEventListener('click', function() {
     document.getElementById('verdict').innerText = JSON.stringify(verdict, null, 2);
     document.getElementById('verdict-section').style.visibility = 'visible';
 });
+
+LightClient.test();

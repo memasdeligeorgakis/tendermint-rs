@@ -10,6 +10,7 @@
 //! [`verifier-web` example]: https://github.com/informalsystems/tendermint-rs/tree/master/light-client-js/examples/verifier-web
 
 mod utils;
+mod dexie;
 
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
