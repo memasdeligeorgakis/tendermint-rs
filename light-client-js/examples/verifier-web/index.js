@@ -1,5 +1,6 @@
 import * as monaco from 'monaco-editor';
 import * as LightClient from 'tendermint-light-client-js';
+import { Dexie } from 'dexie';
 
 let untrustedBlockEditor = monaco.editor.create(document.getElementById("untrusted-block-editor"), {
     value: JSON.stringify({
@@ -185,4 +186,4 @@ document.getElementById('verify-btn').addEventListener('click', function() {
     document.getElementById('verdict-section').style.visibility = 'visible';
 });
 
-LightClient.test();
+LightClient.db_test()
