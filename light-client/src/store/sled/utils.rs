@@ -92,10 +92,12 @@ where
 
     /// Return an iterator over all values within this tree
     pub fn iter(&self) -> impl DoubleEndedIterator<Item = V> {
-        self.tree
+        let a = self.tree
             .iter()
             .flatten()
-            .flat_map(|(_, v)| serde_cbor::from_slice(&v))
+            .flat_map(|(_, v)| serde_cbor::from_slice(&v));
+
+        a
     }
 }
 

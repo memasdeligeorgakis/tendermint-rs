@@ -186,4 +186,4 @@ document.getElementById('verify-btn').addEventListener('click', function() {
     document.getElementById('verdict-section').style.visibility = 'visible';
 });
 
-LightClient.db_test()
+LightClient.db_test().then(console.log)

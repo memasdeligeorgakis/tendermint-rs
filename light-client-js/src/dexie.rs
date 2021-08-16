@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use futures::executor::*;
+use wasm_rs_async_executor::single_threaded as executor;
 use js_sys::Uint8Array;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use tendermint::block::Height;
@@ -113,7 +113,7 @@ impl<V> HeightIndexedWebDb<V>
     pub fn get(&self, height: Height) -> Result<Option<V>, Error>{
         let key = key_bytes(height);
 
-        let js_value: JsValue = block_on(self.table.where_(":id").equals_array(key).first());
+        let js_value: JsValue = executor::block_on(self.table.where_(":id").equals_array(key).first());
 
         let value = if js_value.is_undefined() {
             None
@@ -134,17 +134,17 @@ impl<V> HeightIndexedWebDb<V>
     pub fn contains_key(&self, height: Height) -> bool {
         let key = key_bytes(height);
 
-        let value: JsValue = block_on(self.table.where_(":id").equals_array(key).first());
+        let value: JsValue = executor::block_on(self.table.where_(":id").equals_array(key).first());
 
         !value.is_undefined()
     }
 
-    pub async fn insert(&self, height: Height, value: &V) -> Result<(), Error> {
+    pub fn insert(&self, height: Height, value: &V) -> Result<(), Error> {
         let key = key_bytes(height);
 
         let data: &[u8] = &serde_cbor::to_vec(&value).map_err(|e| ErrorKind::Store.context(e))?;
 
-        self.table.add(data.into(), key).await;
+        executor::block_on(self.table.add(data.into(), key));
 
         Ok(())
     }
@@ -152,7 +152,7 @@ impl<V> HeightIndexedWebDb<V>
     pub fn remove(&self, height: Height) {
         let key = key_bytes(height);
 
-        block_on(self.table.delete(key));
+        executor::block_on(self.table.delete(key));
     }
 
     // pub fn iter(&self) -> impl DoubleEndedIterator<Item = V> {
@@ -170,30 +170,6 @@ impl<V> HeightIndexedWebDb<V>
     // }
 }
 
-
-#[wasm_bindgen]
-pub async fn test() -> JsValue {
-    crate::utils::set_panic_hook();
-
-    let dexie = dexie::Dexie::new("test");
-
-    let schema = JsValue::from_serde(&Schema { 
-        tree: ""
-    }).unwrap();
-
-    dexie.version(1).stores(schema);
-
-    let table = dexie.get("tree");
-
-    let test = "memes irados xd".as_bytes().into();
-
-    let key = &(50 as u64).to_be_bytes()[..];
-
-    table.add(test, key.into()).await;
-
-    table.to_collection().to_array().await
-}
-
 pub struct LB(LightBlock);
 
 impl From<TmLightBlock> for LB {
@@ -208,7 +184,8 @@ impl From<TmLightBlock> for LB {
 }
 
 #[wasm_bindgen]
-pub async fn db_test() {
+#[allow(unused_variables)]
+pub fn db_test() -> bool {
     let db: HeightIndexedWebDb<LightBlock> = HeightIndexedWebDb::new("testing");
 
     let height = Height::default();
@@ -216,5 +193,7 @@ pub async fn db_test() {
     let LB(light_block) =
         TestgenLightBlock::new_default(1).generate().unwrap().into();
 
-    db.insert(height, &light_block).await;
+    let _ = db.insert(height, &light_block);
+
+    db.contains_key(height)
 }

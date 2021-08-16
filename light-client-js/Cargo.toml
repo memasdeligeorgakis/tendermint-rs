@@ -26,14 +26,17 @@ default = ["console_error_panic_hook"]
 futures = "0.3.16"
 getrandom = { version = "0.2.3", features = [ "js" ] }
 js-sys = "0.3.25"
+pin-project = "1.0.5"
 serde = { version = "1.0", features = [ "derive" ] }
 serde_cbor = "0.11.1"
 serde_json = "1.0"
 tendermint = { version = "0.20.0", path = "../tendermint" }
 tendermint-light-client = { version = "0.20.0", path = "../light-client", default-features = false }
 tendermint-testgen = { path = "../testgen" }
+tokio = { version = "1.1", features = [ "macros", "time", "sync" ] }
 wasm-bindgen = { version = "0.2.75", features = [ "serde-serialize" ] }
 wasm-bindgen-futures = "0.4.25"
+wasm-rs-async-executor = { version = "0.9.0", features = [ "cooperative-browser" ] }
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
