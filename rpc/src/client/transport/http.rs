@@ -41,6 +41,21 @@ pub struct HttpClient {
 impl HttpClient {
     /// Construct a new Tendermint RPC HTTP/S client connecting to the given
     /// URL.
+    #[allow(unused)] // TODO(celsobonutti): Implement RPC web support into `light-client` crate
+    #[cfg(feature = "http-client-web")]
+    pub fn new<U>(url: U) -> Result<Self>
+    where
+        U: TryInto<HttpClientUrl, Error = Error>,
+    {
+        let url: HttpClientUrl = url.try_into()?;
+        Ok(Self {
+            inner: sealed::HttpClient::new(url.0)
+        })
+    }
+
+    /// Construct a new Tendermint RPC HTTP/S client connecting to the given
+    /// URL.
+    #[cfg(not(feature = "http-client-web"))]
     pub fn new<U>(url: U) -> Result<Self>
     where
         U: TryInto<HttpClientUrl, Error = Error>,
@@ -80,7 +95,19 @@ impl HttpClient {
     }
 }
 
+#[cfg(not(feature = "http-client-web"))]
 #[async_trait]
+impl Client for HttpClient {
+    async fn perform<R>(&self, request: R) -> Result<R::Response>
+    where
+        R: SimpleRequest,
+    {
+        self.inner.perform(request).await
+    }
+}
+
+#[cfg(feature = "http-client-web")]
+#[async_trait(?Send)]
 impl Client for HttpClient {
     async fn perform<R>(&self, request: R) -> Result<R::Response>
     where
@@ -146,15 +173,6 @@ impl TryFrom<net::Address> for HttpClientUrl {
 
 #[cfg(not(feature = "http-client-web"))]
 impl TryFrom<HttpClientUrl> for hyper::Uri {
-    type Error = Error;
-
-    fn try_from(value: HttpClientUrl) -> Result<Self> {
-        Ok(value.0.to_string().parse()?)
-    }
-}
-
-#[cfg(feature = "http-client-web")]
-impl TryFrom<HttpClientUrl> for reqwest::Url {
     type Error = Error;
 
     fn try_from(value: HttpClientUrl) -> Result<Self> {
@@ -300,20 +318,21 @@ mod sealed {
 
 #[cfg(feature = "http-client-web")]
 pub mod sealed {
-    use crate::{Response, Result, SimpleRequest};
-    use reqwest::{Client, Url, Method};
-    use reqwest::header;
+    use crate::{Response, Result, SimpleRequest, Url};
+    use wasm_bindgen::prelude::*;
+    use wasm_bindgen::JsCast;
+    use wasm_bindgen_futures::JsFuture;
+    use web_sys::{Request, RequestInit, Response as JsResponse};
 
     /// A wrapper for a `reqwest`-based client.
     #[derive(Debug, Clone)]
-    pub struct FetchClient {
+    pub struct HttpClient {
         url: Url,
-        inner: Client
     }
 
-    impl FetchClient {
-        pub fn new(url: Url, inner: Client) -> Self {
-            Self { url, inner }
+    impl HttpClient {
+        pub fn new(url: Url) -> Self {
+            Self { url }
         }
 
         pub async fn perform<R>(&self, request: R) -> Result<R::Response>
@@ -321,73 +340,38 @@ pub mod sealed {
             R: SimpleRequest,
         {
             let request = self.build_request(request)?;
-            let response = self.inner.execute(request).await?;
-            let response_body = response.text().await?;
+
+            let window = web_sys::window().unwrap();
+            let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
+
+            assert!(resp_value.is_instance_of::<JsResponse>());
+            let resp: JsResponse = resp_value.dyn_into().unwrap();
+
+            let js_response_body = JsFuture::from(resp.text()?).await?;
+
+            let response_body: String = js_response_body.into_serde().unwrap();
+
             tracing::debug!("Incoming response: {}", response_body);
+
             R::Response::from_string(&response_body)
         }
 
         pub fn build_request<R: SimpleRequest>(
             &self,
             request: R
-        ) -> Result<reqwest::Request> {
-            let request_body = request.into_json();
+        ) -> Result<web_sys::Request> {
+            let body = JsValue::from(request.into_json());
+            let mut init = RequestInit::new();
+            init.method("POST");
+            init.body(Some(&body));
 
-            let mut request =
-                self
-                .inner
-                .request(Method::POST, self.url.clone())
-                .body(reqwest::Body::from(request_body))
-                .build()?;
+            let request = Request::new_with_str_and_init(&self.url.to_string(), &init)?;
 
-            {
-                let headers = request.headers_mut();
-                headers.insert(header::CONTENT_TYPE, "application/json".parse().unwrap());
-                headers.insert(
-                    header::USER_AGENT,
-                    format!("tendermint.rs/{}", env!("CARGO_PKG_VERSION"))
-                        .parse()
-                        .unwrap()
-                );
-            }
+            request
+                .headers()
+                .set("Content-Type", "application/json")?;
 
             Ok(request)
-        }
-    }
-
-    /// We offer some variations of `reqwest`-based client.
-    ///
-    /// Here we erase the type signature of the underlying `reqwest`-based
-    /// client, allowing the higher-level HTTP client to operate via HTTP or
-    /// HTTPS.
-    #[derive(Debug, Clone)]
-    pub enum HttpClient {
-        Http(FetchClient),
-        Https(FetchClient),
-    }
-
-    impl HttpClient {
-        pub fn new_http(url: Url) -> Self {
-            let client = FetchClient::new(url, Client::new());
-            Self::Http(client)
-        }
-
-        pub fn new_https(url: Url) -> Self {
-            let client = Client::builder()
-                          .build()
-                          .unwrap();
-
-            Self::Https(FetchClient::new(url, client))
-        }
-
-        pub async fn perform<R>(&self, request: R) -> Result<R::Response>
-        where
-            R: SimpleRequest,
-        {
-            match self {
-                HttpClient::Http(c) => c.perform(request).await,
-                HttpClient::Https(c) => c.perform(request).await
-            }
         }
     }
 }

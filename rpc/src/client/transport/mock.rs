@@ -52,6 +52,20 @@ pub struct MockClient<M: MockRequestMatcher> {
     driver_tx: ChannelTx<DriverCommand>,
 }
 
+#[cfg(feature = "http-client-web")]
+#[async_trait(?Send)]
+impl<M: MockRequestMatcher> Client for MockClient<M> {
+    async fn perform<R>(&self, request: R) -> Result<R::Response>
+    where
+        R: Request,
+    {
+        self.matcher.response_for(request).ok_or_else(|| {
+            Error::client_internal_error("no matching response for incoming request")
+        })?
+    }
+}
+
+#[cfg(not(feature = "http-client-web"))]
 #[async_trait]
 impl<M: MockRequestMatcher> Client for MockClient<M> {
     async fn perform<R>(&self, request: R) -> Result<R::Response>

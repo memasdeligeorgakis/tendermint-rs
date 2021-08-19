@@ -30,16 +30,16 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["rpc-client", "lightstore-sled"]
+default = ["rpc-client"]
 rpc-client = ["tokio", "tendermint-rpc/http-client"]
-rpc-client-web = ["tokio", "tendermint-rpc/http-client-web"]
+rpc-client-web = ["tokio/rt", "tendermint-rpc/http-client-web"]
 secp256k1 = ["tendermint/secp256k1", "tendermint-rpc/secp256k1"]
 lightstore-sled = ["sled"]
 unstable = []
 
 [dependencies]
 tendermint = { version = "0.20.0", path = "../tendermint" }
-tendermint-rpc = { version = "0.20.0", path = "../rpc", default-features = false }
+tendermint-rpc = { version = "0.20.0", path = "../rpc" }
 
 anomaly = { version = "0.2.0", features = ["serializer"] }
 contracts = "0.4.0"

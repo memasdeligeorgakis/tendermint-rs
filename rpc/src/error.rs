@@ -152,9 +152,16 @@ impl From<WSError> for Error {
 }
 
 #[cfg(feature = "http-client-web")]
-impl From<reqwest::Error> for Error {
-    fn from(reqwest_error: reqwest::Error) -> Error {
-        Error::http_error(reqwest_error.to_string())
+impl From<wasm_bindgen::JsValue> for Error {
+    fn from(e: wasm_bindgen::JsValue) -> Self {
+        let error: Result<String, _> = e.into_serde();
+        match error {
+            Ok(error) =>
+                Error::http_error(error),
+            Err(serde_error) => {
+                Error::http_error(serde_error.to_string())
+            }
+        }
     }
 }
 
