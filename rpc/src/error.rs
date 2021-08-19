@@ -151,6 +151,13 @@ impl From<WSError> for Error {
     }
 }
 
+#[cfg(feature = "http-client-web")]
+impl From<reqwest::Error> for Error {
+    fn from(reqwest_error: reqwest::Error) -> Error {
+        Error::http_error(reqwest_error.to_string())
+    }
+}
+
 #[cfg(feature = "cli")]
 impl From<serde_json::Error> for Error {
     fn from(e: serde_json::Error) -> Self {

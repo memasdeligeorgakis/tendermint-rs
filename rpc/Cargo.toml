@@ -61,11 +61,27 @@ websocket-client = [
   "tokio/time",
   "tracing"
 ]
+http-client-web = [
+  "async-trait",
+  "futures",
+  "http",
+  "js-sys",
+  "reqwest",
+  "serde_derive",
+  "tracing",
+  "tracing-wasm",
+  "wasm-bindgen-futures",
+  "web-sys",
+  "tokio/time",
+  "tokio/sync",
+  "tokio/rt",
+  "tokio/macros"
+]
 
 [dependencies]
 bytes = "1.0"
 chrono = "0.4"
-getrandom = "0.1"
+getrandom = { version = "0.2.3", features = [ "js" ] }
 pin-project = "1.0.1"
 serde = { version = "1", features = [ "derive" ] }
 serde_bytes = "0.11"
@@ -85,10 +101,28 @@ http = { version = "0.2", optional = true }
 hyper = { version = "0.14", optional = true, features = ["client", "http1", "http2", "tcp"] }
 hyper-proxy = { version = "0.9", optional = true }
 hyper-rustls = { version = "0.22.1", optional = true }
+js-sys = { version = "0.3.52", optional = true }
+reqwest = { version = "0.11.4", optional = true }
+serde_derive = { version = "1.0.127", optional = true }
 structopt = { version = "0.3", optional = true }
-tokio = { version = "1.0", optional = true }
+tokio = { version = "1.10", optional = true }
 tracing = { version = "0.1", optional = true }
 tracing-subscriber = { version = "0.2", optional = true }
+tracing-wasm = { version = "0.2", optional = true }
+wasm-bindgen = { version = "0.2.75", features = ["serde-serialize"] }
+wasm-bindgen-futures = { version = "0.4.25", optional = true }
+
+[dependencies.web-sys]
+version = "0.3.52"
+features = [
+  'Headers',
+  'Request',
+  'RequestInit',
+  'RequestMode',
+  'Response',
+  'Window'
+]
+optional = true
 
 [dev-dependencies]
 lazy_static = "1.4.0"

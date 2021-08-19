@@ -7,7 +7,7 @@ pub mod sync;
 mod transport;
 pub use transport::mock::{MockClient, MockRequestMatcher, MockRequestMethodMatcher};
 
-#[cfg(feature = "http-client")]
+#[cfg(any(feature = "http-client", feature = "http-client-web"))]
 pub use transport::http::{HttpClient, HttpClientUrl};
 #[cfg(feature = "websocket-client")]
 pub use transport::websocket::{WebSocketClient, WebSocketClientDriver, WebSocketClientUrl};

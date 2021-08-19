@@ -27,9 +27,9 @@
 //! [Tendermint RPC]: https://docs.tendermint.com/master/rpc/
 //! [`/subscribe` endpoint]: https://docs.tendermint.com/master/rpc/#/Websocket/subscribe
 
-#[cfg(any(feature = "http-client", feature = "websocket-client"))]
+#[cfg(any(feature = "http-client", feature = "websocket-client", feature = "http-client-web"))]
 mod client;
-#[cfg(any(feature = "http-client", feature = "websocket-client"))]
+#[cfg(any(feature = "http-client", feature = "websocket-client", feature = "http-client-web"))]
 pub use client::{
     Client, MockClient, MockRequestMatcher, MockRequestMethodMatcher, Subscription,
     SubscriptionClient,

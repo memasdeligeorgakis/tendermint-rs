@@ -62,6 +62,7 @@ impl HttpClient {
     /// attempt to connect using the [HTTP CONNECT] method.
     ///
     /// [HTTP CONNECT]: https://en.wikipedia.org/wiki/HTTP_tunnel
+    #[cfg(not(feature = "http-client-web"))]
     pub fn new_with_proxy<U, P>(url: U, proxy_url: P) -> Result<Self>
     where
         U: TryInto<HttpClientUrl, Error = Error>,
@@ -143,6 +144,7 @@ impl TryFrom<net::Address> for HttpClientUrl {
     }
 }
 
+#[cfg(not(feature = "http-client-web"))]
 impl TryFrom<HttpClientUrl> for hyper::Uri {
     type Error = Error;
 
@@ -151,6 +153,16 @@ impl TryFrom<HttpClientUrl> for hyper::Uri {
     }
 }
 
+#[cfg(feature = "http-client-web")]
+impl TryFrom<HttpClientUrl> for reqwest::Url {
+    type Error = Error;
+
+    fn try_from(value: HttpClientUrl) -> Result<Self> {
+        Ok(value.0.to_string().parse()?)
+    }
+}
+
+#[cfg(not(feature = "http-client-web"))]
 mod sealed {
     use crate::{Error, Response, Result, SimpleRequest};
     use hyper::body::Buf;
@@ -283,5 +295,99 @@ mod sealed {
             .read_to_string(&mut response_body)
             .map_err(|_| Error::client_internal_error("failed to read response body to string"))?;
         Ok(response_body)
+    }
+}
+
+#[cfg(feature = "http-client-web")]
+pub mod sealed {
+    use crate::{Response, Result, SimpleRequest};
+    use reqwest::{Client, Url, Method};
+    use reqwest::header;
+
+    /// A wrapper for a `reqwest`-based client.
+    #[derive(Debug, Clone)]
+    pub struct FetchClient {
+        url: Url,
+        inner: Client
+    }
+
+    impl FetchClient {
+        pub fn new(url: Url, inner: Client) -> Self {
+            Self { url, inner }
+        }
+
+        pub async fn perform<R>(&self, request: R) -> Result<R::Response>
+        where
+            R: SimpleRequest,
+        {
+            let request = self.build_request(request)?;
+            let response = self.inner.execute(request).await?;
+            let response_body = response.text().await?;
+            tracing::debug!("Incoming response: {}", response_body);
+            R::Response::from_string(&response_body)
+        }
+
+        pub fn build_request<R: SimpleRequest>(
+            &self,
+            request: R
+        ) -> Result<reqwest::Request> {
+            let request_body = request.into_json();
+
+            let mut request =
+                self
+                .inner
+                .request(Method::POST, self.url.clone())
+                .body(reqwest::Body::from(request_body))
+                .build()?;
+
+            {
+                let headers = request.headers_mut();
+                headers.insert(header::CONTENT_TYPE, "application/json".parse().unwrap());
+                headers.insert(
+                    header::USER_AGENT,
+                    format!("tendermint.rs/{}", env!("CARGO_PKG_VERSION"))
+                        .parse()
+                        .unwrap()
+                );
+            }
+
+            Ok(request)
+        }
+    }
+
+    /// We offer some variations of `reqwest`-based client.
+    ///
+    /// Here we erase the type signature of the underlying `reqwest`-based
+    /// client, allowing the higher-level HTTP client to operate via HTTP or
+    /// HTTPS.
+    #[derive(Debug, Clone)]
+    pub enum HttpClient {
+        Http(FetchClient),
+        Https(FetchClient),
+    }
+
+    impl HttpClient {
+        pub fn new_http(url: Url) -> Self {
+            let client = FetchClient::new(url, Client::new());
+            Self::Http(client)
+        }
+
+        pub fn new_https(url: Url) -> Self {
+            let client = Client::builder()
+                          .build()
+                          .unwrap();
+
+            Self::Https(FetchClient::new(url, client))
+        }
+
+        pub async fn perform<R>(&self, request: R) -> Result<R::Response>
+        where
+            R: SimpleRequest,
+        {
+            match self {
+                HttpClient::Http(c) => c.perform(request).await,
+                HttpClient::Https(c) => c.perform(request).await
+            }
+        }
     }
 }
