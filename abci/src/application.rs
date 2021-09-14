@@ -6,15 +6,7 @@ pub mod echo;
 pub mod kvstore;
 
 use tendermint_proto::abci::request::Value;
-use tendermint_proto::abci::{
-    response, Request, RequestApplySnapshotChunk, RequestBeginBlock, RequestCheckTx,
-    RequestDeliverTx, RequestEcho, RequestEndBlock, RequestInfo, RequestInitChain,
-    RequestLoadSnapshotChunk, RequestOfferSnapshot, RequestQuery, RequestSetOption, Response,
-    ResponseApplySnapshotChunk, ResponseBeginBlock, ResponseCheckTx, ResponseCommit,
-    ResponseDeliverTx, ResponseEcho, ResponseEndBlock, ResponseFlush, ResponseInfo,
-    ResponseInitChain, ResponseListSnapshots, ResponseLoadSnapshotChunk, ResponseOfferSnapshot,
-    ResponseQuery, ResponseSetOption,
-};
+use tendermint_proto::abci::{response, Request, RequestApplySnapshotChunk, RequestBeginBlock, RequestCheckTx, RequestDeliverTx, RequestEcho, RequestEndBlock, RequestInfo, RequestInitChain, RequestLoadSnapshotChunk, RequestOfferSnapshot, RequestQuery, Response, ResponseApplySnapshotChunk, ResponseBeginBlock, ResponseCheckTx, ResponseCommit, ResponseDeliverTx, ResponseEcho, ResponseEndBlock, ResponseFlush, ResponseInfo, ResponseInitChain, ResponseListSnapshots, ResponseLoadSnapshotChunk, ResponseOfferSnapshot, ResponseQuery, RequestPrepareProposal, ResponsePrepareProposal, RequestExtendVote, ResponseExtendVote, RequestVerifyVoteExtension, ResponseVerifyVoteExtension};
 
 /// An ABCI application.
 ///
@@ -77,12 +69,6 @@ pub trait Application: Send + Clone + 'static {
         Default::default()
     }
 
-    /// Allows the Tendermint node to request that the application set an
-    /// option to a particular value.
-    fn set_option(&self, _request: RequestSetOption) -> ResponseSetOption {
-        Default::default()
-    }
-
     /// Used during state sync to discover available snapshots on peers.
     fn list_snapshots(&self) -> ResponseListSnapshots {
         Default::default()
@@ -105,6 +91,24 @@ pub trait Application: Send + Clone + 'static {
     ) -> ResponseApplySnapshotChunk {
         Default::default()
     }
+
+    /// Used to create the next block to be voted on
+    fn prepare_proposal(&self, _request: RequestPrepareProposal) -> ResponsePrepareProposal {
+        Default::default()
+    }
+
+    /// Used to provide additional data along with a pre-vote
+    fn extend_vote(&self, _request: RequestExtendVote) -> ResponseExtendVote {
+        Default::default()
+    }
+
+    /// Used to verify the data provided by the [`extend_vote`] method
+    fn verify_vote_extension(
+        &self,
+        _request: RequestVerifyVoteExtension,
+    ) -> ResponseVerifyVoteExtension {
+        Default::default()
+    }
 }
 
 /// Provides a mechanism for the [`Server`] to execute incoming requests while
@@ -124,7 +128,6 @@ impl<A: Application> RequestDispatcher for A {
                 Value::Echo(req) => response::Value::Echo(self.echo(req)),
                 Value::Flush(_) => response::Value::Flush(self.flush()),
                 Value::Info(req) => response::Value::Info(self.info(req)),
-                Value::SetOption(req) => response::Value::SetOption(self.set_option(req)),
                 Value::InitChain(req) => response::Value::InitChain(self.init_chain(req)),
                 Value::Query(req) => response::Value::Query(self.query(req)),
                 Value::BeginBlock(req) => response::Value::BeginBlock(self.begin_block(req)),
@@ -141,6 +144,15 @@ impl<A: Application> RequestDispatcher for A {
                 }
                 Value::ApplySnapshotChunk(req) => {
                     response::Value::ApplySnapshotChunk(self.apply_snapshot_chunk(req))
+                }
+                Value::PrepareProposal(req) => {
+                    response::Value::PrepareProposal(self.prepare_proposal(req))
+                }
+                Value::ExtendVote(req) => {
+                    response::Value::ExtendVote(self.extend_vote(req))
+                }
+                Value::VerifyVoteExtension(req) => {
+                    response::Value::VerifyVoteExtension(self.verify_vote_extension(req))
                 }
             }),
         }
