@@ -4,11 +4,13 @@ mod canonical_vote;
 mod power;
 mod sign_vote;
 mod validator_index;
+mod vote_extension;
 
 pub use self::canonical_vote::CanonicalVote;
 pub use self::power::Power;
 pub use self::sign_vote::*;
 pub use self::validator_index::ValidatorIndex;
+pub use self::vote_extension::*;
 use crate::chain::Id as ChainId;
 use crate::consensus::State;
 use crate::hash;
@@ -56,6 +58,9 @@ pub struct Vote {
 
     /// Signature
     pub signature: Signature,
+
+    /// Vote extension
+    pub vote_extension: Option<VoteExtension>,
 }
 
 impl Protobuf<RawVote> for Vote {}
@@ -81,6 +86,7 @@ impl TryFrom<RawVote> for Vote {
             validator_address: value.validator_address.try_into()?,
             validator_index: value.validator_index.try_into()?,
             signature: value.signature.try_into()?,
+            vote_extension: value.vote_extension.map(|v| v.into()),
         })
     }
 }
@@ -96,6 +102,7 @@ impl From<Vote> for RawVote {
             validator_address: value.validator_address.into(),
             validator_index: value.validator_index.into(),
             signature: value.signature.into(),
+            vote_extension: value.vote_extension.map(|v| v.into()),
         }
     }
 }
@@ -167,6 +174,7 @@ impl Default for Vote {
             validator_address: account::Id::new([0; account::LENGTH]),
             validator_index: ValidatorIndex::try_from(0_i32).unwrap(),
             signature: Ed25519(ed25519Signature::new([0; ed25519SignatureLength])),
+            vote_extension: None,
         }
     }
 }

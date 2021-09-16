@@ -133,12 +133,14 @@ impl Generator<block::Commit> for Commit {
                     validator_address: vote.validator_address,
                     timestamp: vote.timestamp.unwrap(),
                     signature: vote.signature,
+                    vote_extension: vote.vote_extension.map(|v| v.into()),
                 })
             } else {
                 Ok(block::CommitSig::BlockIdFlagCommit {
                     validator_address: vote.validator_address,
                     timestamp: vote.timestamp.unwrap(),
                     signature: vote.signature,
+                    vote_extension: vote.vote_extension.map(|v| v.into()),
                 })
             }
         };
@@ -208,6 +210,7 @@ mod tests {
                     validator_address: _,
                     timestamp: _,
                     signature,
+                    vote_extension: _,
                 } => {
                     let block_vote = votes[i].generate().unwrap();
                     let sign_bytes =

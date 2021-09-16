@@ -9,6 +9,7 @@ use tendermint::{
     vote,
     vote::ValidatorIndex,
 };
+use tendermint::vote::VoteExtension;
 
 #[derive(Debug, Options, Serialize, Deserialize, Clone)]
 pub struct Vote {
@@ -134,6 +135,12 @@ impl Generator<vote::Vote> for Vote {
                 signature::Ed25519Signature::try_from(&[0_u8; ED25519_SIGNATURE_SIZE][..]),
                 "failed to construct empty ed25519 signature"
             )),
+            vote_extension: Some(
+                VoteExtension{
+                    app_data_self_authenticating: vec![],
+                    app_data_to_sign: vec![1u8, 32]
+                }
+            ),
         };
         let sign_bytes = get_vote_sign_bytes(block_header.chain_id, &vote);
         vote.signature = signer.sign(sign_bytes.as_slice()).into();
