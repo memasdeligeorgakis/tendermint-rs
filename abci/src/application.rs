@@ -6,7 +6,16 @@ pub mod echo;
 pub mod kvstore;
 
 use tendermint_proto::abci::request::Value;
-use tendermint_proto::abci::{response, Request, RequestApplySnapshotChunk, RequestBeginBlock, RequestCheckTx, RequestDeliverTx, RequestEcho, RequestEndBlock, RequestInfo, RequestInitChain, RequestLoadSnapshotChunk, RequestOfferSnapshot, RequestQuery, Response, ResponseApplySnapshotChunk, ResponseBeginBlock, ResponseCheckTx, ResponseCommit, ResponseDeliverTx, ResponseEcho, ResponseEndBlock, ResponseFlush, ResponseInfo, ResponseInitChain, ResponseListSnapshots, ResponseLoadSnapshotChunk, ResponseOfferSnapshot, ResponseQuery, RequestPrepareProposal, ResponsePrepareProposal, RequestExtendVote, ResponseExtendVote, RequestVerifyVoteExtension, ResponseVerifyVoteExtension};
+use tendermint_proto::abci::{
+    response, Request, RequestApplySnapshotChunk, RequestBeginBlock, RequestCheckTx,
+    RequestDeliverTx, RequestEcho, RequestEndBlock, RequestExtendVote, RequestInfo,
+    RequestInitChain, RequestLoadSnapshotChunk, RequestOfferSnapshot, RequestPrepareProposal,
+    RequestQuery, RequestVerifyVoteExtension, Response, ResponseApplySnapshotChunk,
+    ResponseBeginBlock, ResponseCheckTx, ResponseCommit, ResponseDeliverTx, ResponseEcho,
+    ResponseEndBlock, ResponseExtendVote, ResponseFlush, ResponseInfo, ResponseInitChain,
+    ResponseListSnapshots, ResponseLoadSnapshotChunk, ResponseOfferSnapshot,
+    ResponsePrepareProposal, ResponseQuery, ResponseVerifyVoteExtension,
+};
 
 /// An ABCI application.
 ///
@@ -148,9 +157,7 @@ impl<A: Application> RequestDispatcher for A {
                 Value::PrepareProposal(req) => {
                     response::Value::PrepareProposal(self.prepare_proposal(req))
                 }
-                Value::ExtendVote(req) => {
-                    response::Value::ExtendVote(self.extend_vote(req))
-                }
+                Value::ExtendVote(req) => response::Value::ExtendVote(self.extend_vote(req)),
                 Value::VerifyVoteExtension(req) => {
                     response::Value::VerifyVoteExtension(self.verify_vote_extension(req))
                 }

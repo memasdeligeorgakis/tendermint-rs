@@ -1,6 +1,7 @@
 use crate::chain::Id as ChainId;
 use crate::error::Error;
 use crate::prelude::*;
+use crate::vote::vote_extension::VoteExtensionToSign;
 use crate::{block, Time};
 use core::convert::{TryFrom, TryInto};
 use serde::{Deserialize, Serialize};
@@ -29,6 +30,9 @@ pub struct CanonicalVote {
 
     /// Chain ID
     pub chain_id: ChainId,
+
+    /// Vote extension to sign
+    pub vote_extension: Option<VoteExtensionToSign>,
 }
 
 impl Protobuf<RawCanonicalVote> for CanonicalVote {}
@@ -52,6 +56,7 @@ impl TryFrom<RawCanonicalVote> for CanonicalVote {
             block_id: block_id.map(|b| b.try_into()).transpose()?,
             timestamp: value.timestamp.map(|t| t.try_into()).transpose()?,
             chain_id: ChainId::try_from(value.chain_id)?,
+            vote_extension: value.vote_extension.map(|v| v.into()),
         })
     }
 }
@@ -68,6 +73,7 @@ impl From<CanonicalVote> for RawCanonicalVote {
             block_id: block_id.map(Into::into),
             timestamp: value.timestamp.map(Into::into),
             chain_id: value.chain_id.to_string(),
+            vote_extension: value.vote_extension.map(|v| v.into()),
         }
     }
 }
@@ -82,6 +88,7 @@ impl CanonicalVote {
             block_id: vote.block_id,
             timestamp: vote.timestamp,
             chain_id,
+            vote_extension: vote.vote_extension.map(VoteExtensionToSign::from),
         }
     }
 }
@@ -118,6 +125,7 @@ mod tests {
                 nanos: 0,
             }),
             chain_id: "testchain".to_string(),
+            vote_extension: None,
         };
         let cp = CanonicalVote::try_from(proto_cp).unwrap();
         assert_eq!(cp.vote_type, Type::Prevote);
