@@ -2,6 +2,7 @@
 
 use crate::error::Error;
 use crate::prelude::*;
+use crate::vote::VoteExtensionToSign;
 use crate::{account, Signature, Time};
 use core::convert::{TryFrom, TryInto};
 use num_traits::ToPrimitive;
@@ -22,6 +23,8 @@ pub enum CommitSig {
         timestamp: Time,
         /// Signature of vote
         signature: Option<Signature>,
+        /// The vote extension data
+        vote_extension: Option<VoteExtensionToSign>,
     },
     /// voted for nil.
     BlockIdFlagNil {
@@ -31,6 +34,8 @@ pub enum CommitSig {
         timestamp: Time,
         /// Signature of vote
         signature: Option<Signature>,
+        /// The vote extension data
+        vote_extension: Option<VoteExtensionToSign>,
     },
 }
 
@@ -110,6 +115,7 @@ impl TryFrom<RawCommitSig> for CommitSig {
                 validator_address: value.validator_address.try_into()?,
                 timestamp,
                 signature: Signature::new(value.signature)?,
+                vote_extension: value.vote_extension.map(|v| v.into()),
             });
         }
         if value.block_id_flag == BlockIdFlag::Nil.to_i32().unwrap() {
@@ -128,6 +134,7 @@ impl TryFrom<RawCommitSig> for CommitSig {
                     .ok_or_else(Error::missing_timestamp)?
                     .try_into()?,
                 signature: Signature::new(value.signature)?,
+                vote_extension: value.vote_extension.map(|v| v.into()),
             });
         }
         Err(Error::block_id_flag())
@@ -142,26 +149,31 @@ impl From<CommitSig> for RawCommitSig {
                 validator_address: Vec::new(),
                 timestamp: None,
                 signature: Vec::new(),
+                vote_extension: None,
             },
             CommitSig::BlockIdFlagNil {
                 validator_address,
                 timestamp,
                 signature,
+                vote_extension,
             } => RawCommitSig {
                 block_id_flag: BlockIdFlag::Nil.to_i32().unwrap(),
                 validator_address: validator_address.into(),
                 timestamp: Some(timestamp.into()),
                 signature: signature.map(|s| s.to_bytes()).unwrap_or_default(),
+                vote_extension: vote_extension.map(|v| v.into()),
             },
             CommitSig::BlockIdFlagCommit {
                 validator_address,
                 timestamp,
                 signature,
+                vote_extension,
             } => RawCommitSig {
                 block_id_flag: BlockIdFlag::Commit.to_i32().unwrap(),
                 validator_address: validator_address.into(),
                 timestamp: Some(timestamp.into()),
                 signature: signature.map(|s| s.to_bytes()).unwrap_or_default(),
+                vote_extension: vote_extension.map(|v| v.into()),
             },
         }
     }

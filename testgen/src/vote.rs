@@ -3,6 +3,7 @@ use gumdrop::Options;
 use serde::{Deserialize, Serialize};
 use simple_error::*;
 use std::convert::TryFrom;
+use tendermint::vote::VoteExtension;
 use tendermint::{
     block::{self, parts::Header as PartSetHeader},
     signature::{Signature, Signer, ED25519_SIGNATURE_SIZE},
@@ -132,6 +133,10 @@ impl Generator<vote::Vote> for Vote {
             validator_index: ValidatorIndex::try_from(validator_index as u32).unwrap(),
             signature: Signature::new(vec![0_u8; ED25519_SIGNATURE_SIZE])
                 .map_err(|e| SimpleError::new(e.to_string()))?,
+            vote_extension: Some(VoteExtension {
+                app_data_self_authenticating: vec![],
+                app_data_to_sign: vec![1u8, 32],
+            }),
         };
 
         let sign_bytes = get_vote_sign_bytes(block_header.chain_id, &vote);
