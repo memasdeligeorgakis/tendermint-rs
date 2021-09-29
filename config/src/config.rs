@@ -20,6 +20,7 @@ use tendermint::{genesis::Genesis, node, Moniker, Timeout};
 
 /// Tendermint `config.toml` file
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
 pub struct TendermintConfig {
     /// TCP or UNIX socket address of the ABCI application,
     /// or the name of an ABCI application compiled in with the Tendermint binary.
@@ -48,21 +49,6 @@ pub struct TendermintConfig {
     /// Path to the JSON file containing the initial validator set and other meta data
     pub genesis_file: PathBuf,
 
-    /// Path to the JSON file containing the private key to use as a validator in the consensus
-    /// protocol
-    pub priv_validator_key_file: Option<PathBuf>,
-
-    /// Path to the JSON file containing the last sign state of a validator
-    pub priv_validator_state_file: PathBuf,
-
-    /// TCP or UNIX socket address for Tendermint to listen on for
-    /// connections from an external PrivValidator process
-    #[serde(
-        deserialize_with = "deserialize_optional_value",
-        serialize_with = "serialize_optional_value"
-    )]
-    pub priv_validator_laddr: Option<net::Address>,
-
     /// Path to the JSON file containing the private key to use for node authentication in the p2p
     /// protocol
     pub node_key_file: PathBuf,
@@ -73,6 +59,9 @@ pub struct TendermintConfig {
     /// If `true`, query the ABCI app on connecting to a new peer
     /// so the app can decide if we should keep the connection or not
     pub filter_peers: bool,
+
+    /// Configuration for the private validator
+    pub priv_validator: PrivValidatorConfig,
 
     /// rpc server configuration options
     pub rpc: RpcConfig,
@@ -278,8 +267,35 @@ pub enum AbciMode {
     Grpc,
 }
 
+/// Tendermint `config.toml` file's `[priv-validator]` section
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+pub struct PrivValidatorConfig {
+    /// Path to the JSON file containing the private key to use as a validator in the consensus protocol
+    pub key_file: PathBuf,
+    /// Path to the JSON file containing the last sign state of a validator
+    pub state_file: PathBuf,
+
+    /// TCP or UNIX socket address for Tendermint to listen on for
+    /// connections from an external PrivValidator process
+    #[serde(
+        deserialize_with = "deserialize_optional_value",
+        serialize_with = "serialize_optional_value"
+    )]
+    pub laddr: Option<net::Address>,
+    /// Client certificate generated while creating needed files for secure connection.
+    /// If a remote validator address is provided but no certificate, the connection will be insecure
+    pub client_certificate_file: Option<PathBuf>,
+    /// Path to the JSON file containing the private key to use as a validator in the consensus
+    /// protocol
+    pub validator_client_key_file: Option<PathBuf>,
+    /// Path Root Certificate Authority used to sign both client and server certificates
+    pub certificate_authority: Option<PathBuf>,
+}
+
 /// Tendermint `config.toml` file's `[rpc]` section
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
 pub struct RpcConfig {
     /// TCP or UNIX socket address for the RPC server to listen on
     pub laddr: net::Address,
@@ -405,6 +421,7 @@ impl fmt::Display for CorsHeader {
 
 /// peer to peer configuration options
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
 pub struct P2PConfig {
     /// Address to listen for incoming connections
     pub laddr: net::Address,
@@ -475,12 +492,6 @@ pub struct P2PConfig {
     /// Set `true` to enable the peer-exchange reactor
     pub pex: bool,
 
-    /// Seed mode, in which node constantly crawls the network and looks for
-    /// peers. If another node asks it for addresses, it responds and disconnects.
-    ///
-    /// Does not work if the peer-exchange reactor is disabled.
-    pub seed_mode: bool,
-
     /// Comma separated list of peer IDs to keep private (will not be gossiped to other peers)
     #[serde(
         serialize_with = "serialize_comma_separated_list",
@@ -500,19 +511,13 @@ pub struct P2PConfig {
 
 /// mempool configuration options
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
 pub struct MempoolConfig {
     /// Recheck enabled
     pub recheck: bool,
 
     /// Broadcast enabled
     pub broadcast: bool,
-
-    /// WAL dir
-    #[serde(
-        deserialize_with = "deserialize_optional_value",
-        serialize_with = "serialize_optional_value"
-    )]
-    pub wal_dir: Option<PathBuf>,
 
     /// Maximum number of transactions in the mempool
     pub size: u64,
@@ -543,6 +548,7 @@ pub struct MempoolConfig {
 
 /// consensus configuration options
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
 pub struct ConsensusConfig {
     /// Path to WAL file
     pub wal_file: PathBuf,
@@ -596,7 +602,7 @@ pub struct ConsensusConfig {
 pub struct TxIndexConfig {
     /// What indexer to use for transactions
     #[serde(default)]
-    pub indexer: TxIndexer,
+    pub indexer: [TxIndexer; 1],
 }
 
 /// What indexer to use for transactions
@@ -611,6 +617,10 @@ pub enum TxIndexer {
     /// levelDB; see DBBackend).
     #[serde(rename = "kv")]
     Kv,
+
+    /// "psql" - the indexer services backed by PostgreSQL.
+    #[serde(rename = "psql")]
+    Psql,
 }
 
 impl Default for TxIndexer {
@@ -621,6 +631,7 @@ impl Default for TxIndexer {
 
 /// instrumentation configuration options
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
 pub struct InstrumentationConfig {
     /// When `true`, Prometheus metrics are served under /metrics on
     /// PrometheusListenAddr.
@@ -639,6 +650,7 @@ pub struct InstrumentationConfig {
 
 /// statesync configuration options
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
 pub struct StatesyncConfig {
     /// State sync rapidly bootstraps a new node by discovering, fetching, and restoring a state
     /// machine snapshot from peers instead of fetching and replaying historical blocks.
