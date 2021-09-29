@@ -37,14 +37,14 @@ mod files {
         assert_eq!(config.log_format, LogFormat::Plain);
         assert_eq!(config.genesis_file, PathBuf::from("config/genesis.json"));
         assert_eq!(
-            config.priv_validator_key_file,
-            Some(PathBuf::from("config/priv_validator_key.json"))
+            config.priv_validator.key_file,
+            PathBuf::from("config/priv_validator_key.json")
         );
         assert_eq!(
-            config.priv_validator_state_file,
+            config.priv_validator.state_file,
             PathBuf::from("data/priv_validator_state.json")
         );
-        assert_eq!(config.priv_validator_laddr, None);
+        assert_eq!(config.priv_validator.laddr, None);
         assert_eq!(config.node_key_file, PathBuf::from("config/node_key.json"));
         assert_eq!(config.abci, AbciMode::Socket);
         assert!(!config.filter_peers);
@@ -121,7 +121,6 @@ mod files {
         assert_eq!(p2p.send_rate.bytes_per_sec(), 5_120_000);
         assert_eq!(p2p.recv_rate.bytes_per_sec(), 5_120_000);
         assert!(p2p.pex);
-        assert!(!p2p.seed_mode);
         assert_eq!(p2p.private_peer_ids.len(), 3);
         assert_eq!(
             p2p.private_peer_ids[0],
@@ -150,7 +149,6 @@ mod files {
         let mempool = &config.mempool;
         assert!(mempool.recheck);
         assert!(mempool.broadcast);
-        assert_eq!(mempool.wal_dir, None);
         assert_eq!(mempool.size, 5000);
         assert_eq!(mempool.max_txs_bytes, 1_073_741_824);
         assert_eq!(mempool.cache_size, 10000);
@@ -186,7 +184,7 @@ mod files {
         // transactions indexer configuration options
 
         let tx_index = &config.tx_index;
-        assert_eq!(tx_index.indexer, TxIndexer::Kv);
+        assert_eq!(tx_index.indexer[0], TxIndexer::Kv);
 
         // instrumentation configuration options
 
