@@ -21,7 +21,6 @@ pub struct Tag {
 pub struct Key(
     #[serde(
         serialize_with = "base64string::serialize",
-        deserialize_with = "base64string::deserialize_to_string"
     )]
     String,
 );
@@ -51,7 +50,6 @@ impl fmt::Display for Key {
 pub struct Value(
     #[serde(
         serialize_with = "base64string::serialize",
-        deserialize_with = "base64string::deserialize_to_string"
     )]
     String,
 );
