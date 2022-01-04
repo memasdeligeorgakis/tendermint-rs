@@ -271,7 +271,8 @@ pub enum AbciMode {
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 pub struct PrivValidatorConfig {
-    /// Path to the JSON file containing the private key to use as a validator in the consensus protocol
+    /// Path to the JSON file containing the private key to use as a validator in the consensus
+    /// protocol
     pub key_file: PathBuf,
     /// Path to the JSON file containing the last sign state of a validator
     pub state_file: PathBuf,
@@ -284,7 +285,8 @@ pub struct PrivValidatorConfig {
     )]
     pub laddr: Option<net::Address>,
     /// Client certificate generated while creating needed files for secure connection.
-    /// If a remote validator address is provided but no certificate, the connection will be insecure
+    /// If a remote validator address is provided but no certificate, the connection will be
+    /// insecure
     pub client_certificate_file: Option<PathBuf>,
     /// Path to the JSON file containing the private key to use as a validator in the consensus
     /// protocol
