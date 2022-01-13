@@ -262,6 +262,7 @@ pub struct VoteExtension {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct VoteExtensionToSign {
     #[prost(bytes="vec", tag="1")]
+    #[serde(with = "crate::serializers::nullable")]
     pub app_data_to_sign: ::prost::alloc::vec::Vec<u8>,
 }
 /// Commit contains the evidence that a block was committed by a set of validators.
