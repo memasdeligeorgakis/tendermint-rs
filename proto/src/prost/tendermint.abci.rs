@@ -182,6 +182,10 @@ pub struct RequestPrepareProposal {
     /// If an application decides to populate block_data with extra information, they can not exceed this value.
     #[prost(int64, tag="2")]
     pub block_data_size: i64,
+    /// votes includes all votes from the previous block. This contains vote extension data that can be used in proposal
+    /// preparation. The votes here will then form the last commit that gets sent in the proposed block.
+    #[prost(message, repeated, tag="3")]
+    pub votes: ::prost::alloc::vec::Vec<super::types::Vote>,
 }
 //----------------------------------------
 // Response types
