@@ -88,7 +88,7 @@ pub mod message {
 }
 /// AuthSigMessage is duplicated from p2p prior to the P2P refactor.
 /// It is used for the SecretConnection until we migrate privval to gRPC.
-/// https://github.com/tendermint/tendermint/issues/4698
+/// <https://github.com/tendermint/tendermint/issues/4698>
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AuthSigMessage {
     #[prost(message, optional, tag="1")]
