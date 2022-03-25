@@ -23,7 +23,8 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["flex-error/std", "flex-error/eyre_tracer"]
+default = ["flex-error/std", "flex-error/eyre_tracer", "js"]
+js = ["tendermint-rpc/js"]
 
 [dependencies]
 tendermint = { version = "0.23.5", path = "../tendermint", default-features = false }
