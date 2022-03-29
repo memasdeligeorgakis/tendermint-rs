@@ -26,7 +26,6 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 default = ["rpc-client", "flex-error/std", "flex-error/eyre_tracer"]
-js = ["tendermint-rpc/js", "tendermint-light-client-verifier/js"]
 rpc-client = ["tokio", "tendermint-rpc/http-client"]
 secp256k1 = ["tendermint/secp256k1", "tendermint-rpc/secp256k1"]
 lightstore-sled = ["sled"]
