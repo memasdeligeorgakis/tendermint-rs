@@ -178,6 +178,39 @@
         "pub_key_types": [
           "ed25519"
         ]
+      },
+      "synchrony": {
+        "message_delay": {
+          "secs": 0,
+          "nanos": 505000000
+        },
+        "precision": {
+          "secs": 12,
+          "nanos": 0
+        }
+      },
+      "timeout": {
+        "propose": {
+          "secs": 3,
+          "nanos": 0
+        },
+        "propose_delta": {
+          "secs": 0,
+          "nanos": 500000000
+        },
+        "vote": {
+          "secs": 1,
+          "nanos": 0
+        },
+        "vote_delta": {
+          "secs": 0,
+          "nanos": 500000000
+        },
+        "commit": {
+          "secs": 1,
+          "nanos": 0
+        },
+        "bypass_commit_timeout": false
       }
     },
     "end_block_events": null,

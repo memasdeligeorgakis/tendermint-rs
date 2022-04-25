@@ -4,8 +4,11 @@ use crate::error::Error;
 use crate::prelude::*;
 use crate::{block, evidence, public_key};
 use core::convert::{TryFrom, TryInto};
+use core::time::Duration;
 use serde::{Deserialize, Serialize};
 use tendermint_proto::types::ConsensusParams as RawParams;
+use tendermint_proto::types::SynchronyParams as RawSynchronyParams;
+use tendermint_proto::types::TimeoutParams as RawTimeoutParams;
 use tendermint_proto::types::ValidatorParams as RawValidatorParams;
 use tendermint_proto::types::VersionParams as RawVersionParams;
 use tendermint_proto::Protobuf;
@@ -25,6 +28,10 @@ pub struct Params {
     /// Version parameters
     #[serde(skip)] // Todo: FIXME kvstore /genesis returns '{}' instead of '{app_version: "0"}'
     pub version: Option<VersionParams>,
+
+    pub synchrony: SynchronyParams,
+
+    pub timeout: TimeoutParams,
 }
 
 impl Protobuf<RawParams> for Params {}
@@ -47,6 +54,14 @@ impl TryFrom<RawParams> for Params {
                 .ok_or_else(Error::invalid_validator_params)?
                 .try_into()?,
             version: value.version.map(TryFrom::try_from).transpose()?,
+            synchrony: value
+                .synchrony
+                .ok_or_else(Error::invalid_synchrony_params)?
+                .try_into()?,
+            timeout: value
+                .timeout
+                .ok_or_else(Error::invalid_timeout_params)?
+                .try_into()?,
         })
     }
 }
@@ -58,6 +73,8 @@ impl From<Params> for RawParams {
             evidence: Some(value.evidence.into()),
             validator: Some(value.validator.into()),
             version: value.version.map(From::from),
+            synchrony: Some(value.synchrony.into()),
+            timeout: Some(value.timeout.into()),
         }
     }
 }
@@ -130,6 +147,133 @@ impl From<VersionParams> for RawVersionParams {
     fn from(value: VersionParams) -> Self {
         RawVersionParams {
             app_version: value.app_version,
+        }
+    }
+}
+
+/// Convert protobuf duration to time duration
+fn try_from(duration: tendermint_proto::google::protobuf::Duration) -> Result<Duration, Error> {
+    let secs = duration
+        .seconds
+        .try_into()
+        .map_err(|_| Error::duration_out_of_range())?;
+    let nanos = duration
+        .nanos
+        .try_into()
+        .map_err(|_| Error::duration_out_of_range())?;
+    Ok(Duration::new(secs, nanos))
+}
+
+/// Convert time duration to protobuf duration
+fn into(duration: Duration) -> Option<tendermint_proto::google::protobuf::Duration> {
+    use tendermint_proto::google::protobuf as pbf;
+    if let (Ok(secs), Ok(nanos)) = (
+        i64::try_from(duration.as_secs()),
+        i32::try_from(duration.subsec_nanos()),
+    ) {
+        Some(pbf::Duration {
+            seconds: secs,
+            nanos,
+        })
+    } else {
+        None
+    }
+}
+
+/// Synchrony Parameters
+#[derive(Clone, Serialize, Deserialize, Debug, Eq, PartialEq, Default)]
+pub struct SynchronyParams {
+    pub message_delay: Duration,
+    pub precision: Duration,
+}
+
+impl Protobuf<RawSynchronyParams> for SynchronyParams {}
+
+impl TryFrom<RawSynchronyParams> for SynchronyParams {
+    type Error = Error;
+
+    fn try_from(value: RawSynchronyParams) -> Result<Self, Self::Error> {
+        Ok(Self {
+            message_delay: value
+                .message_delay
+                .map(try_from)
+                .transpose()?
+                .ok_or_else(Error::missing_synchrony_params)?,
+            precision: value
+                .precision
+                .map(try_from)
+                .transpose()?
+                .ok_or_else(Error::missing_synchrony_params)?,
+        })
+    }
+}
+
+impl From<SynchronyParams> for RawSynchronyParams {
+    fn from(value: SynchronyParams) -> Self {
+        RawSynchronyParams {
+            message_delay: into(value.message_delay),
+            precision: into(value.precision),
+        }
+    }
+}
+
+/// Synchrony Parameters
+#[derive(Clone, Serialize, Deserialize, Debug, Eq, PartialEq, Default)]
+pub struct TimeoutParams {
+    pub propose: Duration,
+    pub propose_delta: Duration,
+    pub vote: Duration,
+    pub vote_delta: Duration,
+    pub commit: Duration,
+    pub bypass_commit_timeout: bool,
+}
+
+impl Protobuf<RawTimeoutParams> for TimeoutParams {}
+
+impl TryFrom<RawTimeoutParams> for TimeoutParams {
+    type Error = Error;
+
+    fn try_from(value: RawTimeoutParams) -> Result<Self, Self::Error> {
+        Ok(Self {
+            propose: value
+                .propose
+                .map(try_from)
+                .transpose()?
+                .ok_or_else(Error::missing_timeout_params)?,
+            propose_delta: value
+                .propose_delta
+                .map(try_from)
+                .transpose()?
+                .ok_or_else(Error::missing_timeout_params)?,
+            vote: value
+                .vote
+                .map(try_from)
+                .transpose()?
+                .ok_or_else(Error::missing_timeout_params)?,
+            vote_delta: value
+                .vote_delta
+                .map(try_from)
+                .transpose()?
+                .ok_or_else(Error::missing_timeout_params)?,
+            commit: value
+                .commit
+                .map(try_from)
+                .transpose()?
+                .ok_or_else(Error::missing_timeout_params)?,
+            bypass_commit_timeout: value.bypass_commit_timeout,
+        })
+    }
+}
+
+impl From<TimeoutParams> for RawTimeoutParams {
+    fn from(value: TimeoutParams) -> Self {
+        Self {
+            propose: into(value.propose),
+            propose_delta: into(value.propose_delta),
+            vote: into(value.vote),
+            vote_delta: into(value.vote_delta),
+            commit: into(value.commit),
+            bypass_commit_timeout: value.bypass_commit_timeout,
         }
     }
 }

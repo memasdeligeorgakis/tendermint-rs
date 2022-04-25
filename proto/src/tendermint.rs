@@ -4,12 +4,6 @@ pub mod consensus {
     include!("prost/tendermint.consensus.rs");
 }
 
-pub mod rpc {
-    pub mod grpc {
-        include!("prost/tendermint.rpc.grpc.rs");
-    }
-}
-
 pub mod p2p {
     include!("prost/tendermint.p2p.rs");
 }
@@ -58,5 +52,5 @@ pub mod privval {
 
 pub mod meta {
     pub const REPOSITORY: &str = "https://github.com/tendermint/tendermint";
-    pub const COMMITISH: &str = "abci++";
+    pub const COMMITISH: &str = "29e5fbcc648510e4763bd0af0b461aed92c21f30";
 }

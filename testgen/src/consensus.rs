@@ -1,4 +1,5 @@
-use tendermint::consensus::params::VersionParams;
+use std::time::Duration;
+use tendermint::consensus::params::{SynchronyParams, TimeoutParams, VersionParams};
 use tendermint::{block, consensus, evidence, public_key::Algorithm};
 
 /// Default consensus params modeled after Go code; but it's not clear how to go to a valid hash
@@ -18,5 +19,17 @@ pub fn default_consensus_params() -> consensus::Params {
             pub_key_types: vec![Algorithm::Ed25519],
         },
         version: Some(VersionParams::default()),
+        synchrony: SynchronyParams {
+            message_delay: Duration::from_millis(505),
+            precision: Duration::from_secs(12),
+        },
+        timeout: TimeoutParams {
+            propose: Duration::from_millis(3000),
+            propose_delta: Duration::from_millis(500),
+            vote: Duration::from_millis(1000),
+            vote_delta: Duration::from_millis(500),
+            commit: Duration::from_millis(1000),
+            bypass_commit_timeout: false,
+        },
     }
 }

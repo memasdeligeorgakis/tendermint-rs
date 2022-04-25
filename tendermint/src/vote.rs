@@ -4,13 +4,11 @@ mod canonical_vote;
 mod power;
 mod sign_vote;
 mod validator_index;
-mod vote_extension;
 
 pub use self::canonical_vote::CanonicalVote;
 pub use self::power::Power;
 pub use self::sign_vote::*;
 pub use self::validator_index::ValidatorIndex;
-pub use self::vote_extension::*;
 
 use core::convert::{TryFrom, TryInto};
 use core::fmt;
@@ -62,7 +60,10 @@ pub struct Vote {
     pub signature: Option<Signature>,
 
     /// Vote extension
-    pub vote_extension: Option<VoteExtension>,
+    pub vote_extension: Vec<u8>,
+
+    /// Extension signature
+    pub extension_signature: Option<Signature>,
 }
 
 impl Protobuf<RawVote> for Vote {}
@@ -88,7 +89,8 @@ impl TryFrom<RawVote> for Vote {
             validator_address: value.validator_address.try_into()?,
             validator_index: value.validator_index.try_into()?,
             signature: Signature::new(value.signature)?,
-            vote_extension: value.vote_extension.map(|v| v.into()),
+            vote_extension: value.extension,
+            extension_signature: Signature::new(value.extension_signature)?,
         })
     }
 }
@@ -104,7 +106,11 @@ impl From<Vote> for RawVote {
             validator_address: value.validator_address.into(),
             validator_index: value.validator_index.into(),
             signature: value.signature.map(|s| s.to_bytes()).unwrap_or_default(),
-            vote_extension: value.vote_extension.map(|v| v.into()),
+            extension: value.vote_extension,
+            extension_signature: value
+                .extension_signature
+                .map(|s| s.to_bytes())
+                .unwrap_or_default(),
         }
     }
 }
@@ -181,7 +187,8 @@ impl Default for Vote {
             signature: Some(Signature::from(
                 Ed25519Signature::from_bytes(&[0; Ed25519Signature::BYTE_SIZE]).unwrap(),
             )),
-            vote_extension: None,
+            vote_extension: vec![],
+            extension_signature: None,
         }
     }
 }

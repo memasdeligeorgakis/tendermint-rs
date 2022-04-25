@@ -66,7 +66,7 @@ fn incoming_fixtures() {
                 assert!(endpoint::commit::Response::from_string(content).is_ok())
             }
             "consensus_params" => {
-                assert!(endpoint::consensus_params::Response::from_string(content).is_ok())
+                assert!(endpoint::consensus_params::Response::from_string(content).is_ok());
             }
             "consensus_state" => {
                 assert!(endpoint::consensus_state::Response::from_string(content).is_ok())

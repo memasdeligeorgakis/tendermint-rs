@@ -4,7 +4,8 @@ pub struct BlockRequest {
     #[prost(int64, tag="1")]
     pub height: i64,
 }
-/// NoBlockResponse informs the node that the peer does not have block at the requested height
+/// NoBlockResponse informs the node that the peer does not have block at the
+/// requested height
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct NoBlockResponse {
     #[prost(int64, tag="1")]

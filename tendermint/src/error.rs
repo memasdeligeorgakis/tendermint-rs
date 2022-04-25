@@ -122,6 +122,12 @@ define_error! {
         MissingVersion
             |_| { format_args!("missing version") },
 
+        MissingSynchronyParams
+            |_| { format_args!("missing synchrony parameters") },
+
+        MissingTimeoutParams
+            |_| { format_args!("missing timeout parameters") },
+
         InvalidFirstHeader
             |_| { format_args!("last_block_id is not null on first height") },
 
@@ -160,6 +166,12 @@ define_error! {
 
         InvalidVersionParams
             |_| { format_args!("invalid version parameters") },
+
+        InvalidSynchronyParams
+            |_| { format_args!("invalid synchrony parameters") },
+
+        InvalidTimeoutParams
+            |_| { format_args!("invalid timeout parameters") },
 
         NegativeMaxAgeNum
             [ DisplayOnly<TryFromIntError> ]
