@@ -7,7 +7,8 @@ use functions::{copy_files, find_proto_files, generate_tendermint_lib, get_commi
 
 mod constants;
 use constants::{
-    CUSTOM_FIELD_ATTRIBUTES, CUSTOM_TYPE_ATTRIBUTES, TENDERMINT_COMMITISH, TENDERMINT_REPO,
+    CUSTOM_FIELD_ATTRIBUTES, CUSTOM_TYPE_ATTRIBUTES,
+    TENDERMINT_COMMITISH, TENDERMINT_REPO, GOGO_REPO, GOGO_COMMITISH,
 };
 
 fn main() {
@@ -47,10 +48,16 @@ fn main() {
         TENDERMINT_COMMITISH,
     ); // This panics if it fails.
 
+    get_commitish(
+        &PathBuf::from(&tendermint_dir).join("third_party"),
+        GOGO_REPO,
+GOGO_COMMITISH,
+    ); // This panics if it fails.
+
     let proto_paths = vec![tendermint_dir.join("proto")];
     let proto_includes_paths = vec![
         tendermint_dir.join("proto"),
-        tendermint_dir.join("third_party").join("proto"),
+        tendermint_dir.join("third_party"),
     ];
     // List available proto files
     let protos = find_proto_files(proto_paths);

@@ -40,11 +40,7 @@ pub struct AuthSigMessage {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PexAddress {
     #[prost(string, tag="1")]
-    pub id: ::prost::alloc::string::String,
-    #[prost(string, tag="2")]
-    pub ip: ::prost::alloc::string::String,
-    #[prost(uint32, tag="3")]
-    pub port: u32,
+    pub url: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PexRequest {
@@ -55,35 +51,18 @@ pub struct PexResponse {
     pub addresses: ::prost::alloc::vec::Vec<PexAddress>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PexAddressV2 {
-    #[prost(string, tag="1")]
-    pub url: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PexRequestV2 {
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PexResponseV2 {
-    #[prost(message, repeated, tag="1")]
-    pub addresses: ::prost::alloc::vec::Vec<PexAddressV2>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PexMessage {
-    #[prost(oneof="pex_message::Sum", tags="1, 2, 3, 4")]
+    #[prost(oneof="pex_message::Sum", tags="3, 4")]
     pub sum: ::core::option::Option<pex_message::Sum>,
 }
 /// Nested message and enum types in `PexMessage`.
 pub mod pex_message {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Sum {
-        #[prost(message, tag="1")]
-        PexRequest(super::PexRequest),
-        #[prost(message, tag="2")]
-        PexResponse(super::PexResponse),
         #[prost(message, tag="3")]
-        PexRequestV2(super::PexRequestV2),
+        PexRequest(super::PexRequest),
         #[prost(message, tag="4")]
-        PexResponseV2(super::PexResponseV2),
+        PexResponse(super::PexResponse),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]

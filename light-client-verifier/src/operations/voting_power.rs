@@ -183,32 +183,23 @@ fn non_absent_vote(
     validator_index: ValidatorIndex,
     commit: &Commit,
 ) -> Option<Vote> {
-    let (validator_address, timestamp, signature, vote_extension, block_id) = match commit_sig {
+    let (validator_address, timestamp, signature, block_id) = match commit_sig {
         CommitSig::BlockIdFlagAbsent { .. } => return None,
         CommitSig::BlockIdFlagCommit {
             validator_address,
             timestamp,
             signature,
-            vote_extension,
         } => (
             *validator_address,
             *timestamp,
             signature.clone(),
-            vote_extension.clone(),
             Some(commit.block_id),
         ),
         CommitSig::BlockIdFlagNil {
             validator_address,
             timestamp,
             signature,
-            vote_extension,
-        } => (
-            *validator_address,
-            *timestamp,
-            signature.clone(),
-            vote_extension.clone(),
-            None,
-        ),
+        } => (*validator_address, *timestamp, signature.clone(), None),
     };
 
     Some(Vote {
@@ -220,7 +211,8 @@ fn non_absent_vote(
         validator_address,
         validator_index,
         signature,
-        vote_extension: vote_extension.map(|v| v.into()),
+        vote_extension: vec![],
+        extension_signature: None,
     })
 }
 

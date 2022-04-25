@@ -99,7 +99,7 @@ mod tests {
     use crate::hash::Algorithm;
     use crate::prelude::*;
     use crate::signature::{Ed25519Signature, Signature};
-    use crate::vote::{CanonicalVote, ValidatorIndex, VoteExtension};
+    use crate::vote::{CanonicalVote, ValidatorIndex};
     use crate::vote::{SignVoteRequest, Type};
     use crate::Hash;
     use crate::Vote;
@@ -138,10 +138,8 @@ mod tests {
                 192, 133, 130, 193, 115, 32, 206, 152, 91, 173, 10,
             ])
             .unwrap(),
-            vote_extension: Some(VoteExtension {
-                app_data_to_sign: vec![1u8; 32],
-                app_data_self_authenticating: vec![],
-            }),
+            vote_extension: vec![1u8; 32],
+            extension_signature: Signature::new([1u8; 64]).unwrap(),
         };
 
         let mut got = vec![];
@@ -187,14 +185,12 @@ mod tests {
         */
 
         let want = vec![
-            160, 1, 8, 1, 17, 57, 48, 0, 0, 0, 0, 0, 0, 25, 2, 0, 0, 0, 0, 0, 0, 0, 34, 74, 10, 32,
+            124, 8, 1, 17, 57, 48, 0, 0, 0, 0, 0, 0, 25, 2, 0, 0, 0, 0, 0, 0, 0, 34, 74, 10, 32,
             68, 69, 65, 68, 66, 69, 69, 70, 68, 69, 65, 68, 66, 69, 69, 70, 66, 65, 70, 66, 65, 70,
             66, 65, 70, 66, 65, 70, 66, 65, 70, 65, 18, 38, 8, 192, 132, 61, 18, 32, 48, 48, 50,
             50, 52, 52, 54, 54, 56, 56, 65, 65, 67, 67, 69, 69, 49, 49, 51, 51, 53, 53, 55, 55, 57,
             57, 66, 66, 68, 68, 70, 70, 42, 11, 8, 177, 211, 129, 210, 5, 16, 128, 157, 202, 111,
-            50, 13, 116, 101, 115, 116, 95, 99, 104, 97, 105, 110, 95, 105, 100, 58, 34, 10, 32, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 1,
+            50, 13, 116, 101, 115, 116, 95, 99, 104, 97, 105, 110, 95, 105, 100,
         ];
         assert_eq!(got, want);
         assert_eq!(got2, want);
@@ -230,10 +226,8 @@ mod tests {
                 192, 133, 130, 193, 115, 32, 206, 152, 91, 173, 10,
             ])
             .unwrap(),
-            vote_extension: Some(VoteExtension {
-                app_data_to_sign: vec![1u8; 32],
-                app_data_self_authenticating: vec![],
-            }),
+            vote_extension: vec![1u8; 32],
+            extension_signature: Signature::new([1u8; 64]).unwrap(),
         };
 
         let request = SignVoteRequest {
@@ -274,12 +268,11 @@ mod tests {
         */
 
         let want = vec![
-            126, 8, 1, 17, 57, 48, 0, 0, 0, 0, 0, 0, 25, 2, 0, 0, 0, 0, 0, 0, 0, 34, 40, 18, 38, 8,
+            90, 8, 1, 17, 57, 48, 0, 0, 0, 0, 0, 0, 25, 2, 0, 0, 0, 0, 0, 0, 0, 34, 40, 18, 38, 8,
             192, 132, 61, 18, 32, 48, 48, 50, 50, 52, 52, 54, 54, 56, 56, 65, 65, 67, 67, 69, 69,
             49, 49, 51, 51, 53, 53, 55, 55, 57, 57, 66, 66, 68, 68, 70, 70, 42, 11, 8, 177, 211,
             129, 210, 5, 16, 128, 157, 202, 111, 50, 13, 116, 101, 115, 116, 95, 99, 104, 97, 105,
-            110, 95, 105, 100, 58, 34, 10, 32, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            110, 95, 105, 100,
         ];
         assert_eq!(got, want);
     }
@@ -385,10 +378,8 @@ mod tests {
                 192, 133, 130, 193, 115, 32, 206, 152, 91, 173, 10,
             ])
             .unwrap(),
-            vote_extension: Some(VoteExtension {
-                app_data_to_sign: vec![1u8; 32],
-                app_data_self_authenticating: vec![],
-            }),
+            vote_extension: vec![1u8; 32],
+            extension_signature: Signature::new(vec![1u8; 64]).unwrap(),
         };
         let got = vote.encode_vec().unwrap();
         let v = Vote::decode_vec(&got).unwrap();
@@ -446,10 +437,11 @@ mod tests {
                 .unwrap(),
             }),
             signature: Signature::new(vec![1; Ed25519Signature::BYTE_SIZE]).unwrap(),
-            vote_extension: Some(VoteExtension {
-                app_data_to_sign: vec![1u8; 32],
-                app_data_self_authenticating: vec![],
-            }),
+            vote_extension: vec![
+                10, 32, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                1, 1, 1, 1, 1, 1, 1,
+            ],
+            extension_signature: None,
         };
         let want = SignVoteRequest {
             vote,
