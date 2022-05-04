@@ -324,6 +324,7 @@ pub struct RpcConfig {
 
     /// Maximum number of simultaneous GRPC connections.
     /// Does not include RPC (HTTP&WebSocket) connections. See `max_open_connections`.
+    #[serde(default)]
     pub grpc_max_open_connections: u64,
 
     /// Activate unsafe RPC commands like `/dial_seeds` and `/unsafe_flush_mempool`
