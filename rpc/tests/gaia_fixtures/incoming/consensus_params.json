@@ -1,5 +1,5 @@
 {
-  "id": "6f0ace3a-c7c1-47e4-808a-d51b85648bca",
+  "id": "6c5641b5-079a-4d2d-9009-f7d4ce20b2ec",
   "jsonrpc": "2.0",
   "result": {
     "block_height": "10",
@@ -7,7 +7,7 @@
       "block": {
         "max_bytes": "22020096",
         "max_gas": "-1",
-        "time_iota_ms": "1000"
+        "time_iota_ms": "500"
       },
       "evidence": {
         "max_age_duration": "172800000000000",
@@ -20,38 +20,18 @@
         ]
       },
       "synchrony": {
-        "message_delay": {
-          "secs": 0,
-          "nanos": 505000000
-        },
-        "precision": {
-          "secs": 12,
-          "nanos": 0
-        }
+        "message_delay": "505000000",
+        "precision": "12000000000"
       },
       "timeout": {
-        "propose": {
-          "secs": 3,
-          "nanos": 0
-        },
-        "propose_delta": {
-          "secs": 0,
-          "nanos": 500000000
-        },
-        "vote": {
-          "secs": 1,
-          "nanos": 0
-        },
-        "vote_delta": {
-          "secs": 0,
-          "nanos": 500000000
-        },
-        "commit": {
-          "secs": 1,
-          "nanos": 0
-        },
+        "propose": "3000000000",
+        "propose_delta": "500000000",
+        "vote": "1000000000",
+        "vote_delta": "500000000",
+        "commit": "1000000000",
         "bypass_commit_timeout": false
-      }
+      },
+      "version": {}
     }
   }
 }

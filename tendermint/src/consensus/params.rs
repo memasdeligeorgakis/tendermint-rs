@@ -2,9 +2,8 @@
 
 use crate::error::Error;
 use crate::prelude::*;
-use crate::{block, evidence, public_key};
+use crate::{block, duration::Duration, evidence, public_key};
 use core::convert::{TryFrom, TryInto};
-use core::time::Duration;
 use serde::{Deserialize, Serialize};
 use tendermint_proto::types::ConsensusParams as RawParams;
 use tendermint_proto::types::SynchronyParams as RawSynchronyParams;
@@ -151,35 +150,6 @@ impl From<VersionParams> for RawVersionParams {
     }
 }
 
-/// Convert protobuf duration to time duration
-fn try_from(duration: tendermint_proto::google::protobuf::Duration) -> Result<Duration, Error> {
-    let secs = duration
-        .seconds
-        .try_into()
-        .map_err(|_| Error::duration_out_of_range())?;
-    let nanos = duration
-        .nanos
-        .try_into()
-        .map_err(|_| Error::duration_out_of_range())?;
-    Ok(Duration::new(secs, nanos))
-}
-
-/// Convert time duration to protobuf duration
-fn into(duration: Duration) -> Option<tendermint_proto::google::protobuf::Duration> {
-    use tendermint_proto::google::protobuf as pbf;
-    if let (Ok(secs), Ok(nanos)) = (
-        i64::try_from(duration.as_secs()),
-        i32::try_from(duration.subsec_nanos()),
-    ) {
-        Some(pbf::Duration {
-            seconds: secs,
-            nanos,
-        })
-    } else {
-        None
-    }
-}
-
 /// Synchrony Parameters
 #[derive(Clone, Serialize, Deserialize, Debug, Eq, PartialEq, Default)]
 pub struct SynchronyParams {
@@ -196,12 +166,12 @@ impl TryFrom<RawSynchronyParams> for SynchronyParams {
         Ok(Self {
             message_delay: value
                 .message_delay
-                .map(try_from)
+                .map(Duration::try_from)
                 .transpose()?
                 .ok_or_else(Error::missing_synchrony_params)?,
             precision: value
                 .precision
-                .map(try_from)
+                .map(Duration::try_from)
                 .transpose()?
                 .ok_or_else(Error::missing_synchrony_params)?,
         })
@@ -211,8 +181,8 @@ impl TryFrom<RawSynchronyParams> for SynchronyParams {
 impl From<SynchronyParams> for RawSynchronyParams {
     fn from(value: SynchronyParams) -> Self {
         RawSynchronyParams {
-            message_delay: into(value.message_delay),
-            precision: into(value.precision),
+            message_delay: Some(value.message_delay.into()),
+            precision: Some(value.precision.into()),
         }
     }
 }
@@ -237,27 +207,27 @@ impl TryFrom<RawTimeoutParams> for TimeoutParams {
         Ok(Self {
             propose: value
                 .propose
-                .map(try_from)
+                .map(Duration::try_from)
                 .transpose()?
                 .ok_or_else(Error::missing_timeout_params)?,
             propose_delta: value
                 .propose_delta
-                .map(try_from)
+                .map(Duration::try_from)
                 .transpose()?
                 .ok_or_else(Error::missing_timeout_params)?,
             vote: value
                 .vote
-                .map(try_from)
+                .map(Duration::try_from)
                 .transpose()?
                 .ok_or_else(Error::missing_timeout_params)?,
             vote_delta: value
                 .vote_delta
-                .map(try_from)
+                .map(Duration::try_from)
                 .transpose()?
                 .ok_or_else(Error::missing_timeout_params)?,
             commit: value
                 .commit
-                .map(try_from)
+                .map(Duration::try_from)
                 .transpose()?
                 .ok_or_else(Error::missing_timeout_params)?,
             bypass_commit_timeout: value.bypass_commit_timeout,
@@ -268,11 +238,11 @@ impl TryFrom<RawTimeoutParams> for TimeoutParams {
 impl From<TimeoutParams> for RawTimeoutParams {
     fn from(value: TimeoutParams) -> Self {
         Self {
-            propose: into(value.propose),
-            propose_delta: into(value.propose_delta),
-            vote: into(value.vote),
-            vote_delta: into(value.vote_delta),
-            commit: into(value.commit),
+            propose: Some(value.propose.into()),
+            propose_delta: Some(value.propose_delta.into()),
+            vote: Some(value.vote.into()),
+            vote_delta: Some(value.vote_delta.into()),
+            commit: Some(value.commit.into()),
             bypass_commit_timeout: value.bypass_commit_timeout,
         }
     }

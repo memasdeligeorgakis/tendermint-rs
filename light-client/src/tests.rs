@@ -19,7 +19,8 @@ use contracts::contract_trait;
 use std::collections::HashMap;
 use std::time::Duration;
 use tendermint::block::Height as HeightStr;
-use tendermint::evidence::{Duration as DurationStr, Evidence};
+use tendermint::duration::Duration as DurationStr;
+use tendermint::evidence::Evidence;
 
 #[derive(Deserialize, Clone, Debug)]
 pub struct TestCases<LB> {
