@@ -33,6 +33,7 @@ pub mod block;
 pub mod chain;
 pub mod channel;
 pub mod consensus;
+pub mod duration;
 pub mod evidence;
 pub mod genesis;
 pub mod hash;

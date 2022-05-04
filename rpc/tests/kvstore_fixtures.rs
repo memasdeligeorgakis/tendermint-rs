@@ -4,7 +4,7 @@ use core::str::FromStr;
 use std::{fs, path::PathBuf};
 use subtle_encoding::{base64, hex};
 use tendermint::abci::transaction::Hash;
-use tendermint::evidence::Duration;
+use tendermint::duration::Duration;
 use tendermint::public_key;
 use tendermint_config::net::Address;
 use tendermint_rpc::{

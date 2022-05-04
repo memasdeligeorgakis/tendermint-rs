@@ -442,7 +442,7 @@ mod tests {
     use core::time::Duration;
     use std::collections::HashMap;
     use tendermint::block::Height;
-    use tendermint::evidence::Duration as DurationStr;
+    use tendermint::duration::Duration as DurationStr;
     use tendermint::trust_threshold::TrustThresholdFraction;
     use tendermint_rpc::{
         self as rpc,
