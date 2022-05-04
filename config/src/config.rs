@@ -316,6 +316,7 @@ pub struct RpcConfig {
     /// TCP or UNIX socket address for the gRPC server to listen on
     /// NOTE: This server only supports `/broadcast_tx_commit`
     #[serde(
+        default,
         deserialize_with = "deserialize_optional_value",
         serialize_with = "serialize_optional_value"
     )]
