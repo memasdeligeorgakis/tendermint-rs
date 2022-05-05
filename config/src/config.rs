@@ -17,6 +17,7 @@ use serde::{de, de::Error as _, ser, Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 use tendermint::{genesis::Genesis, node, Moniker, Timeout};
+use std::time::Duration;
 
 /// Tendermint `config.toml` file
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -580,24 +581,31 @@ pub struct ConsensusConfig {
     pub wal_file: PathBuf,
 
     /// Propose timeout
+    #[serde(default = "default_timeout_propose")]
     pub timeout_propose: Timeout,
 
     /// Propose timeout delta
+    #[serde(default = "default_timeout_propose_delta")]
     pub timeout_propose_delta: Timeout,
 
     /// Prevote timeout
+    #[serde(default = "default_timeout_prevote")]
     pub timeout_prevote: Timeout,
 
     /// Prevote timeout delta
+    #[serde(default = "default_timeout_prevote_delta")]
     pub timeout_prevote_delta: Timeout,
 
     /// Precommit timeout
+    #[serde(default = "default_timeout_precommit")]
     pub timeout_precommit: Timeout,
 
     /// Precommit timeout delta
+    #[serde(default = "default_timeout_precommit_delta")]
     pub timeout_precommit_delta: Timeout,
 
     /// Commit timeout
+    #[serde(default = "default_timeout_commit")]
     pub timeout_commit: Timeout,
 
     /// How many blocks to look back to check existence of the node's consensus votes before
@@ -608,6 +616,7 @@ pub struct ConsensusConfig {
     pub double_sign_check_height: u64,
 
     /// Make progress as soon as we have all the precommits (as if TimeoutCommit = 0)
+    #[serde(default)]
     pub skip_timeout_commit: bool,
 
     /// EmptyBlocks mode
@@ -621,6 +630,34 @@ pub struct ConsensusConfig {
 
     /// Reactor query sleep duration
     pub peer_query_maj23_sleep_duration: Timeout,
+}
+
+fn default_timeout_propose() -> Timeout {
+    Duration::from_secs(3).into()
+}
+
+fn default_timeout_propose_delta() -> Timeout {
+    Duration::from_millis(500).into()
+}
+
+fn default_timeout_prevote() -> Timeout {
+    Duration::from_secs(1).into()
+}
+
+fn default_timeout_prevote_delta() -> Timeout {
+    Duration::from_millis(500).into()
+}
+
+fn default_timeout_precommit() -> Timeout {
+    Duration::from_secs(1).into()
+}
+
+fn default_timeout_precommit_delta() -> Timeout {
+    Duration::from_millis(500).into()
+}
+
+fn default_timeout_commit() -> Timeout {
+    Duration::from_secs(1).into()
 }
 
 /// transactions indexer configuration options
