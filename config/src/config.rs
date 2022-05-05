@@ -471,6 +471,7 @@ pub struct P2PConfig {
     pub max_num_inbound_peers: u64,
 
     /// Maximum number of outbound peers to connect to, excluding persistent peers
+    #[serde(default = "default_max_num_outbound_peers")]
     pub max_num_outbound_peers: u64,
 
     /// List of node IDs, to which a connection will be (re)established ignoring any existing
@@ -526,6 +527,10 @@ fn default_addr_book_strict() -> bool {
 
 fn default_max_num_inbound_peers() -> u64 {
     40
+}
+
+fn default_max_num_outbound_peers() -> u64 {
+    10
 }
 
 /// mempool configuration options
