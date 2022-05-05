@@ -517,7 +517,7 @@ pub struct P2PConfig {
 }
 
 fn default_addr_book_file() -> PathBuf {
-    Path::new("config/addrbook.json").into_path_buf()
+    Path::new("config/addrbook.json").to_path_buf()
 }
 
 fn default_addr_book_strict() -> bool {
