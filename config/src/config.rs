@@ -458,6 +458,7 @@ pub struct P2PConfig {
     pub upnp: bool,
 
     /// Path to address book
+    #[serde(default)]
     pub addr_book_file: PathBuf,
 
     /// Set `true` for strict address routability rules
