@@ -477,12 +477,14 @@ pub struct P2PConfig {
     /// List of node IDs, to which a connection will be (re)established ignoring any existing
     /// limits
     #[serde(
+        default,
         serialize_with = "serialize_comma_separated_list",
         deserialize_with = "deserialize_comma_separated_list"
     )]
     pub unconditional_peer_ids: Vec<node::Id>,
 
     /// Maximum pause when redialing a persistent peer (if zero, exponential backoff is used)
+    #[serde(default)]
     pub persistent_peers_max_dial_period: Timeout,
 
     /// Time to wait before flushing messages out on the connection
