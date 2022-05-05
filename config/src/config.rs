@@ -458,15 +458,16 @@ pub struct P2PConfig {
     pub upnp: bool,
 
     /// Path to address book
-    #[serde(default)]
+    #[serde(default = "default_addr_book_file")]
     pub addr_book_file: PathBuf,
 
     /// Set `true` for strict address routability rules
     /// Set `false` for private or local networks
-    #[serde(default)]
+    #[serde(default = "default_addr_book_strict")]
     pub addr_book_strict: bool,
 
     /// Maximum number of inbound peers
+    #[serde(default = "default_max_num_inbound_peers")]
     pub max_num_inbound_peers: u64,
 
     /// Maximum number of outbound peers to connect to, excluding persistent peers
@@ -513,6 +514,18 @@ pub struct P2PConfig {
 
     /// Timeout when dialing other peers
     pub dial_timeout: Timeout,
+}
+
+fn default_addr_book_file() -> PathBuf {
+    Path::new("config/addrbook.json").into_path_buf()
+}
+
+fn default_addr_book_strict() -> bool {
+    true
+}
+
+fn default_max_num_inbound_peers() -> u64 {
+    40
 }
 
 /// mempool configuration options
