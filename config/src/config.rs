@@ -463,6 +463,7 @@ pub struct P2PConfig {
 
     /// Set `true` for strict address routability rules
     /// Set `false` for private or local networks
+    #[serde(default)]
     pub addr_book_strict: bool,
 
     /// Maximum number of inbound peers
