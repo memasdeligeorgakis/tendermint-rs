@@ -28,6 +28,18 @@ impl From<Timeout> for Duration {
     }
 }
 
+impl From<crate::duration::Duration> for Timeout {
+    fn from(duration: crate::duration::Duration) -> Timeout {
+        Timeout(duration.0)
+    }
+}
+
+impl From<Timeout> for crate::duration::Duration {
+    fn from(timeout: Timeout) -> Self {
+        Self(timeout.0)
+    }
+}
+
 impl FromStr for Timeout {
     type Err = Error;
 
