@@ -17,7 +17,6 @@ use serde::{de, de::Error as _, ser, Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 use tendermint::{genesis::Genesis, node, Moniker, Timeout};
-use std::time::Duration;
 
 /// Tendermint `config.toml` file
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -30,10 +29,8 @@ pub struct TendermintConfig {
     /// A custom human readable name for this node
     pub moniker: Moniker,
 
-    /// If this node is many blocks behind the tip of the chain, FastSync
-    /// allows them to catchup quickly by downloading blocks in parallel
-    /// and verifying their commits
-    pub fast_sync: bool,
+    /// The mode in which to run Tendermint: `seed | full | validator`
+    pub mode: Mode,
 
     /// Database backend: `goleveldb | cleveldb | boltdb | rocksdb | badgerdb`
     pub db_backend: DbBackend,
@@ -124,6 +121,19 @@ impl TendermintConfig {
         let path = home.as_ref().join(&self.node_key_file);
         NodeKey::load_json_file(&path)
     }
+}
+
+/// The mode in which to run Tendermint. Can be a seed node, full node,
+/// or validator
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Mode {
+    /// Full node
+    Full,
+    /// Validator
+    Validator,
+    /// Seed node
+    Seed,
 }
 
 /// Database backend
@@ -314,20 +324,6 @@ pub struct RpcConfig {
     /// A list of non simple headers the client is allowed to use with cross-domain requests
     pub cors_allowed_headers: Vec<CorsHeader>,
 
-    /// TCP or UNIX socket address for the gRPC server to listen on
-    /// NOTE: This server only supports `/broadcast_tx_commit`
-    #[serde(
-        default,
-        deserialize_with = "deserialize_optional_value",
-        serialize_with = "serialize_optional_value"
-    )]
-    pub grpc_laddr: Option<net::Address>,
-
-    /// Maximum number of simultaneous GRPC connections.
-    /// Does not include RPC (HTTP&WebSocket) connections. See `max_open_connections`.
-    #[serde(default)]
-    pub grpc_max_open_connections: u64,
-
     /// Activate unsafe RPC commands like `/dial_seeds` and `/unsafe_flush_mempool`
     #[serde(rename = "unsafe")]
     pub unsafe_commands: bool,
@@ -428,6 +424,9 @@ impl fmt::Display for CorsHeader {
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 pub struct P2PConfig {
+    /// The type of queue used in the p2p layer
+    pub queue_type: QueueType,
+
     /// Address to listen for incoming connections
     pub laddr: net::Address,
 
@@ -458,35 +457,11 @@ pub struct P2PConfig {
     /// UPNP port forwarding
     pub upnp: bool,
 
-    /// Path to address book
-    #[serde(default = "default_addr_book_file")]
-    pub addr_book_file: PathBuf,
+    /// Maximum number of incoming connection attempts
+    pub max_incoming_connection_attempts: u64,
 
-    /// Set `true` for strict address routability rules
-    /// Set `false` for private or local networks
-    #[serde(default = "default_addr_book_strict")]
-    pub addr_book_strict: bool,
-
-    /// Maximum number of inbound peers
-    #[serde(default = "default_max_num_inbound_peers")]
-    pub max_num_inbound_peers: u64,
-
-    /// Maximum number of outbound peers to connect to, excluding persistent peers
-    #[serde(default = "default_max_num_outbound_peers")]
-    pub max_num_outbound_peers: u64,
-
-    /// List of node IDs, to which a connection will be (re)established ignoring any existing
-    /// limits
-    #[serde(
-        default,
-        serialize_with = "serialize_comma_separated_list",
-        deserialize_with = "deserialize_comma_separated_list"
-    )]
-    pub unconditional_peer_ids: Vec<node::Id>,
-
-    /// Maximum pause when redialing a persistent peer (if zero, exponential backoff is used)
-    #[serde(default)]
-    pub persistent_peers_max_dial_period: Timeout,
+    /// Maximum number of connections (inbound and outbound)
+    pub max_connections: u64,
 
     /// Time to wait before flushing messages out on the connection
     pub flush_throttle_timeout: Timeout,
@@ -520,20 +495,16 @@ pub struct P2PConfig {
     pub dial_timeout: Timeout,
 }
 
-fn default_addr_book_file() -> PathBuf {
-    Path::new("config/addrbook.json").to_path_buf()
-}
-
-fn default_addr_book_strict() -> bool {
-    true
-}
-
-fn default_max_num_inbound_peers() -> u64 {
-    40
-}
-
-fn default_max_num_outbound_peers() -> u64 {
-    10
+/// The type of queue used in the p2p layer
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum QueueType {
+    /// First in, first out
+    Fifo,
+    /// Priority queue
+    Priority,
+    /// Weight deficit round robin
+    Wdrr,
 }
 
 /// mempool configuration options
@@ -580,44 +551,12 @@ pub struct ConsensusConfig {
     /// Path to WAL file
     pub wal_file: PathBuf,
 
-    /// Propose timeout
-    #[serde(default = "default_timeout_propose")]
-    pub timeout_propose: Timeout,
-
-    /// Propose timeout delta
-    #[serde(default = "default_timeout_propose_delta")]
-    pub timeout_propose_delta: Timeout,
-
-    /// Prevote timeout
-    #[serde(default = "default_timeout_prevote")]
-    pub timeout_prevote: Timeout,
-
-    /// Prevote timeout delta
-    #[serde(default = "default_timeout_prevote_delta")]
-    pub timeout_prevote_delta: Timeout,
-
-    /// Precommit timeout
-    #[serde(default = "default_timeout_precommit")]
-    pub timeout_precommit: Timeout,
-
-    /// Precommit timeout delta
-    #[serde(default = "default_timeout_precommit_delta")]
-    pub timeout_precommit_delta: Timeout,
-
-    /// Commit timeout
-    #[serde(default = "default_timeout_commit")]
-    pub timeout_commit: Timeout,
-
     /// How many blocks to look back to check existence of the node's consensus votes before
     /// joining consensus When non-zero, the node will panic upon restart
     /// if the same consensus key was used to sign {double-sign-check-height} last blocks.
     /// So, validators should stop the state machine, wait for some blocks, and then restart the
     /// state machine to avoid panic.
     pub double_sign_check_height: u64,
-
-    /// Make progress as soon as we have all the precommits (as if TimeoutCommit = 0)
-    #[serde(default)]
-    pub skip_timeout_commit: bool,
 
     /// EmptyBlocks mode
     pub create_empty_blocks: bool,
@@ -630,34 +569,6 @@ pub struct ConsensusConfig {
 
     /// Reactor query sleep duration
     pub peer_query_maj23_sleep_duration: Timeout,
-}
-
-fn default_timeout_propose() -> Timeout {
-    Duration::from_secs(3).into()
-}
-
-fn default_timeout_propose_delta() -> Timeout {
-    Duration::from_millis(500).into()
-}
-
-fn default_timeout_prevote() -> Timeout {
-    Duration::from_secs(1).into()
-}
-
-fn default_timeout_prevote_delta() -> Timeout {
-    Duration::from_millis(500).into()
-}
-
-fn default_timeout_precommit() -> Timeout {
-    Duration::from_secs(1).into()
-}
-
-fn default_timeout_precommit_delta() -> Timeout {
-    Duration::from_millis(500).into()
-}
-
-fn default_timeout_commit() -> Timeout {
-    Duration::from_secs(1).into()
 }
 
 /// transactions indexer configuration options
@@ -722,6 +633,11 @@ pub struct StatesyncConfig {
     /// will have a truncated block history, starting from the height of the snapshot.
     pub enable: bool,
 
+    /// State sync uses light client verification to verify state. This can be done either through the
+    /// P2P layer or RPC layer. Set this to true to use the P2P layer. If false (default), RPC layer
+    /// will be used.
+    pub use_p2p: bool,
+
     /// RPC servers (comma-separated) for light client verification of the synced state machine and
     /// retrieval of state data for node bootstrapping. Also needs a trusted height and
     /// corresponding header hash obtained from a trusted source, and a period during which
@@ -750,6 +666,17 @@ pub struct StatesyncConfig {
     /// Temporary directory for state sync snapshot chunks, defaults to the OS tempdir (typically
     /// /tmp). Will create a new, randomly named directory within, and remove it when done.
     pub temp_dir: String,
+
+    /// The timeout duration before re-requesting a chunk, possibly from a different
+    /// peer (default: 15 seconds).
+    pub chunk_request_timeout: Timeout,
+
+    /// The number of concurrent chunk and block fetchers to run (default: 4).
+    #[serde(
+        serialize_with = "serialize_to_string",
+        deserialize_with = "deserialize_from_string"
+    )]
+    pub fetchers: u64
 }
 
 /// fastsync configuration options
@@ -834,4 +761,26 @@ where
 {
     let str_list = list.iter().map(|addr| addr.to_string()).collect::<Vec<_>>();
     str_list.join(",").serialize(serializer)
+}
+
+/// Deserialize a string into another primitive type
+fn deserialize_from_string<'de, T, D>(deserializer: D) -> Result<T, D::Error>
+where
+    D: de::Deserializer<'de>,
+    T: FromStr,
+    <T as FromStr>::Err: core::fmt::Debug,
+{
+    let string = String::deserialize(deserializer)?;
+    T::from_str(string.as_str())
+        .map_err(|e| D::Error::custom(format!("{:?}", e)))
+}
+
+/// Serialize a primitive type as its string representation
+fn serialize_to_string<S, T>(field: T, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: ser::Serializer,
+    T: ToString,
+{
+    let string = field.to_string();
+    serializer.serialize_str(string.as_str())
 }
