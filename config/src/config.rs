@@ -81,9 +81,6 @@ pub struct TendermintConfig {
 
     /// statesync configuration options
     pub statesync: StatesyncConfig,
-
-    /// fastsync configuration options
-    pub fastsync: FastsyncConfig,
 }
 
 impl TendermintConfig {
