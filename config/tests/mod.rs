@@ -27,7 +27,7 @@ fn config_toml_parser() {
         "tcp://127.0.0.1:26658".parse::<net::Address>().unwrap()
     );
     assert_eq!(config.moniker.as_ref(), "technodrome");
-    assert!(config.fast_sync);
+    assert_eq!(config.mode, Mode::Validator);
     assert_eq!(config.db_backend, DbBackend::GoLevelDb);
     assert_eq!(config.db_dir, PathBuf::from("data"));
     assert_eq!(config.log_level.global, Some("info".to_string()));
@@ -67,12 +67,12 @@ fn config_toml_parser() {
     assert_eq!(rpc.cors_allowed_headers[2].as_ref(), "Content-Type");
     assert_eq!(rpc.cors_allowed_headers[3].as_ref(), "X-Requested-With");
     assert_eq!(rpc.cors_allowed_headers[4].as_ref(), "X-Server-Time");
-    assert_eq!(rpc.grpc_laddr, None);
-    assert_eq!(rpc.grpc_max_open_connections, 900);
     assert!(!rpc.unsafe_commands);
     assert_eq!(rpc.max_open_connections, 900);
     assert_eq!(rpc.max_subscription_clients, 100);
     assert_eq!(rpc.max_subscriptions_per_client, 5);
+    assert_eq!(rpc.max_body_bytes, 1000000);
+    assert_eq!(rpc.max_header_bytes, 1048576);
     assert_eq!(*rpc.timeout_broadcast_tx_commit, Duration::from_secs(10));
     assert_eq!(rpc.tls_cert_file, None);
     assert_eq!(rpc.tls_key_file, None);
@@ -80,6 +80,7 @@ fn config_toml_parser() {
     // peer to peer configuration options
 
     let p2p = &config.p2p;
+    assert_eq!(p2p.queue_type, QueueType::Priority);
     assert_eq!(
         p2p.laddr,
         "tcp://0.0.0.0:26656".parse::<net::Address>().unwrap()
@@ -111,11 +112,9 @@ fn config_toml_parser() {
             .parse::<net::Address>()
             .unwrap()
     );
+    assert_eq!(p2p.max_connections, 64);
+    assert_eq!(p2p.max_incoming_connection_attempts, 100);
     assert!(!p2p.upnp);
-    assert_eq!(p2p.addr_book_file, PathBuf::from("config/addrbook.json"));
-    assert!(p2p.addr_book_strict);
-    assert_eq!(p2p.max_num_inbound_peers, 40);
-    assert_eq!(p2p.max_num_outbound_peers, 10);
     assert_eq!(*p2p.flush_throttle_timeout, Duration::from_millis(100));
     assert_eq!(p2p.max_packet_msg_payload_size, 1024);
     assert_eq!(p2p.send_rate.bytes_per_sec(), 5_120_000);
@@ -152,22 +151,13 @@ fn config_toml_parser() {
     assert_eq!(mempool.size, 5000);
     assert_eq!(mempool.max_txs_bytes, 1_073_741_824);
     assert_eq!(mempool.cache_size, 10000);
+    assert_eq!(mempool.max_tx_bytes, 1048576);
+    assert_eq!(mempool.max_batch_bytes, 0);
 
     // consensus configuration options
 
     let consensus = &config.consensus;
     assert_eq!(consensus.wal_file, PathBuf::from("data/cs.wal/wal"));
-    assert_eq!(*consensus.timeout_propose, Duration::from_secs(3));
-    assert_eq!(*consensus.timeout_propose_delta, Duration::from_millis(500));
-    assert_eq!(*consensus.timeout_prevote, Duration::from_secs(1));
-    assert_eq!(*consensus.timeout_prevote_delta, Duration::from_millis(500));
-    assert_eq!(*consensus.timeout_precommit, Duration::from_secs(1));
-    assert_eq!(
-        *consensus.timeout_precommit_delta,
-        Duration::from_millis(500)
-    );
-    assert_eq!(*consensus.timeout_commit, Duration::from_secs(5));
-    assert!(!consensus.skip_timeout_commit);
     assert_eq!(
         *consensus.create_empty_blocks_interval,
         Duration::from_secs(0)
