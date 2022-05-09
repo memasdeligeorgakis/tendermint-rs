@@ -335,6 +335,17 @@ pub struct RpcConfig {
     /// Maximum number of unique queries a given client can `/subscribe` to.
     pub max_subscriptions_per_client: u64,
 
+    /// The time window size for the event log. All events up to this long before
+    /// the latest (up to EventLogMaxItems) will be available for subscribers to
+    /// fetch via the /events method.  If 0 (the default) the event log and the
+    /// /events RPC method are disabled.
+    pub event_log_window_size: Timeout,
+
+    ///  The maxiumum number of events that may be retained by the event log.  If
+    ///this value is 0, no upper limit is set. Otherwise, items in excess of
+    /// this number will be discarded from the event log.
+    pub event_log_max_items: u64,
+
     /// How long to wait for a tx to be committed during `/broadcast_tx_commit`.
     pub timeout_broadcast_tx_commit: Timeout,
 
