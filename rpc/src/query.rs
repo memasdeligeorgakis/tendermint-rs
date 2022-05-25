@@ -395,6 +395,7 @@ where
 #[derive(Debug, Clone, PartialEq)]
 pub enum EventType {
     NewBlock,
+    NewBlockHeader,
     Tx,
 }
 
@@ -402,6 +403,7 @@ impl fmt::Display for EventType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             EventType::NewBlock => write!(f, "NewBlock"),
+            EventType::NewBlockHeader => write!(f, "NewBlockHeader"),
             EventType::Tx => write!(f, "Tx"),
         }
     }
@@ -413,6 +415,7 @@ impl FromStr for EventType {
     fn from_str(s: &str) -> Result<Self, Error> {
         match s {
             "NewBlock" => Ok(Self::NewBlock),
+            "NewBlockHeader" => Ok(Self::NewBlockHeader),
             "Tx" => Ok(Self::Tx),
             invalid => Err(Error::unrecognized_event_type(invalid.to_string())),
         }
