@@ -32,6 +32,10 @@
           "commit": "1000000000",
           "bypass_commit_timeout": false
         },
+        "abci": {
+          "vote_extensions_enable_height": 0,
+          "recheck_tx": true
+        },
         "version": {}
       },
       "genesis_time": "2021-07-16T12:16:29.232984022Z",

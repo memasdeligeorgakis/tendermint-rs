@@ -128,6 +128,9 @@ define_error! {
         MissingTimeoutParams
             |_| { format_args!("missing timeout parameters") },
 
+        MissingAbciParams
+            |_| { format_args!("missing ABCI parameters") },
+
         InvalidFirstHeader
             |_| { format_args!("last_block_id is not null on first height") },
 

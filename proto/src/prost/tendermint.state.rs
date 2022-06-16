@@ -1,11 +1,3 @@
-/// ABCIResponses retains the responses
-/// of the various ABCI calls during block processing.
-/// It is persisted to disk for each height before calling Commit.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct AbciResponses {
-    #[prost(message, optional, tag="2")]
-    pub finalize_block: ::core::option::Option<super::abci::ResponseFinalizeBlock>,
-}
 /// ValidatorsInfo represents the latest validator set, or the last height it changed
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ValidatorsInfo {
