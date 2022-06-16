@@ -684,7 +684,7 @@ pub struct StatesyncConfig {
         serialize_with = "serialize_to_string",
         deserialize_with = "deserialize_from_string"
     )]
-    pub fetchers: u64
+    pub fetchers: u64,
 }
 
 /// fastsync configuration options
@@ -779,8 +779,7 @@ where
     <T as FromStr>::Err: core::fmt::Debug,
 {
     let string = String::deserialize(deserializer)?;
-    T::from_str(string.as_str())
-        .map_err(|e| D::Error::custom(format!("{:?}", e)))
+    T::from_str(string.as_str()).map_err(|e| D::Error::custom(format!("{:?}", e)))
 }
 
 /// Serialize a primitive type as its string representation

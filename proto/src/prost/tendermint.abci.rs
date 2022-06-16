@@ -7,7 +7,7 @@
 
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Request {
-    #[prost(oneof="request::Value", tags="1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19")]
+    #[prost(oneof="request::Value", tags="1, 2, 3, 4, 5, 7, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19")]
     pub value: ::core::option::Option<request::Value>,
 }
 /// Nested message and enum types in `Request`.
@@ -24,14 +24,8 @@ pub mod request {
         InitChain(super::RequestInitChain),
         #[prost(message, tag="5")]
         Query(super::RequestQuery),
-        #[prost(message, tag="6")]
-        BeginBlock(super::RequestBeginBlock),
         #[prost(message, tag="7")]
         CheckTx(super::RequestCheckTx),
-        #[prost(message, tag="8")]
-        DeliverTx(super::RequestDeliverTx),
-        #[prost(message, tag="9")]
-        EndBlock(super::RequestEndBlock),
         #[prost(message, tag="10")]
         Commit(super::RequestCommit),
         #[prost(message, tag="11")]
@@ -100,32 +94,11 @@ pub struct RequestQuery {
     pub prove: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RequestBeginBlock {
-    #[prost(bytes="vec", tag="1")]
-    pub hash: ::prost::alloc::vec::Vec<u8>,
-    #[prost(message, optional, tag="2")]
-    pub header: ::core::option::Option<super::types::Header>,
-    #[prost(message, optional, tag="3")]
-    pub last_commit_info: ::core::option::Option<CommitInfo>,
-    #[prost(message, repeated, tag="4")]
-    pub byzantine_validators: ::prost::alloc::vec::Vec<Misbehavior>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RequestCheckTx {
     #[prost(bytes="vec", tag="1")]
     pub tx: ::prost::alloc::vec::Vec<u8>,
     #[prost(enumeration="CheckTxType", tag="2")]
     pub r#type: i32,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RequestDeliverTx {
-    #[prost(bytes="vec", tag="1")]
-    pub tx: ::prost::alloc::vec::Vec<u8>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RequestEndBlock {
-    #[prost(int64, tag="1")]
-    pub height: i64,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RequestCommit {
@@ -254,7 +227,7 @@ pub struct RequestFinalizeBlock {
 
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Response {
-    #[prost(oneof="response::Value", tags="1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20")]
+    #[prost(oneof="response::Value", tags="1, 2, 3, 4, 5, 6, 8, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20")]
     pub value: ::core::option::Option<response::Value>,
 }
 /// Nested message and enum types in `Response`.
@@ -273,14 +246,8 @@ pub mod response {
         InitChain(super::ResponseInitChain),
         #[prost(message, tag="6")]
         Query(super::ResponseQuery),
-        #[prost(message, tag="7")]
-        BeginBlock(super::ResponseBeginBlock),
         #[prost(message, tag="8")]
         CheckTx(super::ResponseCheckTx),
-        #[prost(message, tag="9")]
-        DeliverTx(super::ResponseDeliverTx),
-        #[prost(message, tag="10")]
-        EndBlock(super::ResponseEndBlock),
         #[prost(message, tag="11")]
         Commit(super::ResponseCommit),
         #[prost(message, tag="12")]
@@ -371,39 +338,19 @@ pub struct ResponseQuery {
     pub codespace: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ResponseBeginBlock {
-    #[prost(message, repeated, tag="1")]
-    pub events: ::prost::alloc::vec::Vec<Event>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResponseCheckTx {
     #[prost(uint32, tag="1")]
     pub code: u32,
     #[prost(bytes="vec", tag="2")]
     pub data: ::prost::alloc::vec::Vec<u8>,
-    /// nondeterministic
-    #[prost(string, tag="3")]
-    pub log: ::prost::alloc::string::String,
-    /// nondeterministic
-    #[prost(string, tag="4")]
-    pub info: ::prost::alloc::string::String,
     #[prost(int64, tag="5")]
     pub gas_wanted: i64,
-    #[prost(int64, tag="6")]
-    pub gas_used: i64,
-    #[prost(message, repeated, tag="7")]
-    pub events: ::prost::alloc::vec::Vec<Event>,
     #[prost(string, tag="8")]
     pub codespace: ::prost::alloc::string::String,
     #[prost(string, tag="9")]
     pub sender: ::prost::alloc::string::String,
     #[prost(int64, tag="10")]
     pub priority: i64,
-    // mempool_error is set by Tendermint.
-
-    /// ABCI applications creating a ResponseCheckTX should not set mempool_error.
-    #[prost(string, tag="11")]
-    pub mempool_error: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResponseDeliverTx {
@@ -428,19 +375,8 @@ pub struct ResponseDeliverTx {
     pub codespace: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ResponseEndBlock {
-    #[prost(message, repeated, tag="1")]
-    pub validator_updates: ::prost::alloc::vec::Vec<ValidatorUpdate>,
-    #[prost(message, optional, tag="2")]
-    pub consensus_param_updates: ::core::option::Option<super::types::ConsensusParams>,
-    #[prost(message, repeated, tag="3")]
-    pub events: ::prost::alloc::vec::Vec<Event>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResponseCommit {
     /// reserve 1
-    #[prost(bytes="vec", tag="2")]
-    pub data: ::prost::alloc::vec::Vec<u8>,
     #[prost(int64, tag="3")]
     pub retain_height: i64,
 }
@@ -576,8 +512,6 @@ pub struct ResponseFinalizeBlock {
     pub consensus_param_updates: ::core::option::Option<super::types::ConsensusParams>,
     #[prost(bytes="vec", tag="5")]
     pub app_hash: ::prost::alloc::vec::Vec<u8>,
-    #[prost(int64, tag="6")]
-    pub retain_height: i64,
 }
 //----------------------------------------
 // Misc.
@@ -589,6 +523,9 @@ pub struct CommitInfo {
     #[prost(message, repeated, tag="2")]
     pub votes: ::prost::alloc::vec::Vec<VoteInfo>,
 }
+/// ExtendedCommitInfo is similar to CommitInfo except that it is only used in
+/// the PrepareProposal request such that Tendermint can provide vote extensions
+/// to the application.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ExtendedCommitInfo {
     /// The round at which the block proposer decided in the previous height.
@@ -600,7 +537,7 @@ pub struct ExtendedCommitInfo {
     pub votes: ::prost::alloc::vec::Vec<ExtendedVoteInfo>,
 }
 /// Event allows application developers to attach additional information to
-/// ResponseBeginBlock, ResponseEndBlock, ResponseCheckTx and ResponseDeliverTx.
+/// ResponseFinalizeBlock, ResponseDeliverTx, ExecTxResult
 /// Later, transactions may be queried using these events.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Event {

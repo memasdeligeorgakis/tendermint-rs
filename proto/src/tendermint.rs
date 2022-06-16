@@ -52,5 +52,5 @@ pub mod privval {
 
 pub mod meta {
     pub const REPOSITORY: &str = "https://github.com/tendermint/tendermint";
-    pub const COMMITISH: &str = "29e5fbcc648510e4763bd0af0b461aed92c21f30";
+    pub const COMMITISH: &str = "56e329aa9e1fa19f8947288f047688abad652526";
 }

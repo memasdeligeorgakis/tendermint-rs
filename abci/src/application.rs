@@ -7,15 +7,14 @@ pub mod kvstore;
 
 use tendermint_proto::abci::request::Value;
 use tendermint_proto::abci::{
-    response, Request, RequestApplySnapshotChunk, RequestBeginBlock, RequestCheckTx,
-    RequestDeliverTx, RequestEcho, RequestEndBlock, RequestExtendVote, RequestFinalizeBlock,
-    RequestInfo, RequestInitChain, RequestLoadSnapshotChunk, RequestOfferSnapshot,
-    RequestPrepareProposal, RequestProcessProposal, RequestQuery, RequestVerifyVoteExtension,
-    Response, ResponseApplySnapshotChunk, ResponseBeginBlock, ResponseCheckTx, ResponseCommit,
-    ResponseDeliverTx, ResponseEcho, ResponseEndBlock, ResponseExtendVote, ResponseFinalizeBlock,
-    ResponseFlush, ResponseInfo, ResponseInitChain, ResponseListSnapshots,
-    ResponseLoadSnapshotChunk, ResponseOfferSnapshot, ResponsePrepareProposal,
-    ResponseProcessProposal, ResponseQuery, ResponseVerifyVoteExtension,
+    response, Request, RequestApplySnapshotChunk, RequestCheckTx, RequestEcho, RequestExtendVote,
+    RequestFinalizeBlock, RequestInfo, RequestInitChain, RequestLoadSnapshotChunk,
+    RequestOfferSnapshot, RequestPrepareProposal, RequestProcessProposal, RequestQuery,
+    RequestVerifyVoteExtension, Response, ResponseApplySnapshotChunk, ResponseCheckTx,
+    ResponseCommit, ResponseEcho, ResponseExtendVote, ResponseFinalizeBlock, ResponseFlush,
+    ResponseInfo, ResponseInitChain, ResponseListSnapshots, ResponseLoadSnapshotChunk,
+    ResponseOfferSnapshot, ResponsePrepareProposal, ResponseProcessProposal, ResponseQuery,
+    ResponseVerifyVoteExtension,
 };
 
 /// An ABCI application.
@@ -51,21 +50,6 @@ pub trait Application: Send + Clone + 'static {
 
     /// Check the given transaction before putting it into the local mempool.
     fn check_tx(&self, _request: RequestCheckTx) -> ResponseCheckTx {
-        Default::default()
-    }
-
-    /// Signals the beginning of a new block, prior to any `DeliverTx` calls.
-    fn begin_block(&self, _request: RequestBeginBlock) -> ResponseBeginBlock {
-        Default::default()
-    }
-
-    /// Apply a transaction to the application's state.
-    fn deliver_tx(&self, _request: RequestDeliverTx) -> ResponseDeliverTx {
-        Default::default()
-    }
-
-    /// Signals the end of a block.
-    fn end_block(&self, _request: RequestEndBlock) -> ResponseEndBlock {
         Default::default()
     }
 
@@ -149,10 +133,7 @@ impl<A: Application> RequestDispatcher for A {
                 Value::Info(req) => response::Value::Info(self.info(req)),
                 Value::InitChain(req) => response::Value::InitChain(self.init_chain(req)),
                 Value::Query(req) => response::Value::Query(self.query(req)),
-                Value::BeginBlock(req) => response::Value::BeginBlock(self.begin_block(req)),
                 Value::CheckTx(req) => response::Value::CheckTx(self.check_tx(req)),
-                Value::DeliverTx(req) => response::Value::DeliverTx(self.deliver_tx(req)),
-                Value::EndBlock(req) => response::Value::EndBlock(self.end_block(req)),
                 Value::Commit(_) => response::Value::Commit(self.commit()),
                 Value::ListSnapshots(_) => response::Value::ListSnapshots(self.list_snapshots()),
                 Value::OfferSnapshot(req) => {

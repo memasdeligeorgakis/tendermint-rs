@@ -323,6 +323,10 @@
           "commit": "1000000000",
           "bypass_commit_timeout": false
         },
+        "abci": {
+          "vote_extensions_enable_height": 0,
+          "recheck_tx": true
+        },
         "version": {}
       },
       "genesis_time": "2021-12-17T20:27:28.966992937Z",

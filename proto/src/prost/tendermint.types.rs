@@ -23,6 +23,8 @@ pub struct ConsensusParams {
     pub synchrony: ::core::option::Option<SynchronyParams>,
     #[prost(message, optional, tag="6")]
     pub timeout: ::core::option::Option<TimeoutParams>,
+    #[prost(message, optional, tag="7")]
+    pub abci: ::core::option::Option<AbciParams>,
 }
 /// BlockParams contains limits on the block size.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -145,6 +147,25 @@ pub struct TimeoutParams {
     /// for the full commit timeout.
     #[prost(bool, tag="6")]
     pub bypass_commit_timeout: bool,
+}
+/// ABCIParams configure functionality specific to the Application Blockchain Interface.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AbciParams {
+    /// vote_extensions_enable_height configures the first height during which
+    /// vote extensions will be enabled. During this specified height, and for all
+    /// subsequent heights, precommit messages that do not contain valid extension data
+    /// will be considered invalid. Prior to this height, vote extensions will not
+    /// be used or accepted by validators on the network.
+    ///
+    /// Once enabled, vote extensions will be created by the application in ExtendVote,
+    /// passed to the application for validation in VerifyVoteExtension and given
+    /// to the application to use when proposing a block during PrepareProposal.
+    #[prost(int64, tag="1")]
+    pub vote_extensions_enable_height: i64,
+    /// Indicates if CheckTx should be called on all the transactions
+    /// remaining in the mempool after a block is executed.
+    #[prost(bool, tag="2")]
+    pub recheck_tx: bool,
 }
 #[derive(::serde::Deserialize, ::serde::Serialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -318,7 +339,7 @@ pub struct Vote {
     #[prost(bytes="vec", tag="9")]
     pub extension: ::prost::alloc::vec::Vec<u8>,
     /// Vote extension signature by the validator if they participated in
-    /// consensus for the associated block.
+    /// consensus for the associated block. Only valid for precommit messages.
     #[prost(bytes="vec", tag="10")]
     pub extension_signature: ::prost::alloc::vec::Vec<u8>,
 }
@@ -353,6 +374,36 @@ pub struct CommitSig {
     #[prost(bytes="vec", tag="4")]
     #[serde(with = "crate::serializers::bytes::base64string")]
     pub signature: ::prost::alloc::vec::Vec<u8>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExtendedCommit {
+    #[prost(int64, tag="1")]
+    pub height: i64,
+    #[prost(int32, tag="2")]
+    pub round: i32,
+    #[prost(message, optional, tag="3")]
+    pub block_id: ::core::option::Option<BlockId>,
+    #[prost(message, repeated, tag="4")]
+    pub extended_signatures: ::prost::alloc::vec::Vec<ExtendedCommitSig>,
+}
+/// ExtendedCommitSig retains all the same fields as CommitSig but adds vote
+/// extension-related fields.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExtendedCommitSig {
+    #[prost(enumeration="BlockIdFlag", tag="1")]
+    pub block_id_flag: i32,
+    #[prost(bytes="vec", tag="2")]
+    pub validator_address: ::prost::alloc::vec::Vec<u8>,
+    #[prost(message, optional, tag="3")]
+    pub timestamp: ::core::option::Option<super::super::google::protobuf::Timestamp>,
+    #[prost(bytes="vec", tag="4")]
+    pub signature: ::prost::alloc::vec::Vec<u8>,
+    /// Vote extension data
+    #[prost(bytes="vec", tag="5")]
+    pub extension: ::prost::alloc::vec::Vec<u8>,
+    /// Vote extension signature
+    #[prost(bytes="vec", tag="6")]
+    pub extension_signature: ::prost::alloc::vec::Vec<u8>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Proposal {
@@ -415,7 +466,7 @@ pub struct TxProof {
     #[prost(message, optional, tag="3")]
     pub proof: ::core::option::Option<super::crypto::Proof>,
 }
-/// BlockIdFlag indicates which BlcokID the signature is for
+/// BlockIdFlag indicates which BlockID the signature is for
 #[derive(::num_derive::FromPrimitive, ::num_derive::ToPrimitive)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
