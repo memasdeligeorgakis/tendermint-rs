@@ -448,13 +448,6 @@ pub struct P2PConfig {
     )]
     pub external_address: Option<net::Address>,
 
-    /// Comma separated list of seed nodes to connect to
-    #[serde(
-        serialize_with = "serialize_comma_separated_list",
-        deserialize_with = "deserialize_comma_separated_list"
-    )]
-    pub seeds: Vec<net::Address>,
-
     /// Comma separated list of nodes to keep persistent connections to
     #[serde(
         serialize_with = "serialize_comma_separated_list",
