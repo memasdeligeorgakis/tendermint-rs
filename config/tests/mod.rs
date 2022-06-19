@@ -146,7 +146,6 @@ fn config_toml_parser() {
     // mempool configuration options
 
     let mempool = &config.mempool;
-    assert!(mempool.recheck);
     assert!(mempool.broadcast);
     assert_eq!(mempool.size, 5000);
     assert_eq!(mempool.max_txs_bytes, 1_073_741_824);

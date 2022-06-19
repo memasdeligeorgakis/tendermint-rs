@@ -520,8 +520,6 @@ pub enum QueueType {
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 pub struct MempoolConfig {
-    /// Recheck enabled
-    pub recheck: bool,
 
     /// Broadcast enabled
     pub broadcast: bool,
