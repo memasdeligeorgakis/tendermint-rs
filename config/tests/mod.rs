@@ -86,6 +86,19 @@ fn config_toml_parser() {
         "tcp://0.0.0.0:26656".parse::<net::Address>().unwrap()
     );
     assert_eq!(p2p.external_address, None);
+    assert_eq!(p2p.bootstrap_peers.len(), 2);
+    assert_eq!(
+        p2p.bootstrap_peers[0],
+        "tcp://c2e1bde78877975b31e6f06e77da200a38048e2b@seed-1.example.com:26656"
+            .parse::<net::Address>()
+            .unwrap()
+    );
+    assert_eq!(
+        p2p.bootstrap_peers[1],
+        "tcp://0eafed3e9e76f626a299e1b8a79454fffe9ca83c@seed-2.example.com:26656"
+            .parse::<net::Address>()
+            .unwrap()
+    );
     assert_eq!(p2p.persistent_peers.len(), 2);
     assert_eq!(
         p2p.persistent_peers[0],
