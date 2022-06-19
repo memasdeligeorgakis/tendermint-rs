@@ -37,6 +37,9 @@ pub enum Method {
     /// Broadcast transaction synchronously
     BroadcastTxSync,
 
+    /// Broadcast transaction synchronously, replaces BroadcastTxSync
+    BroadcastTx,
+
     /// Broadcast transaction commit
     BroadcastTxCommit,
 
@@ -93,6 +96,7 @@ impl Method {
             Method::BroadcastEvidence => "broadcast_evidence",
             Method::BroadcastTxAsync => "broadcast_tx_async",
             Method::BroadcastTxSync => "broadcast_tx_sync",
+            Method::BroadcastTx => "broadcast_tx",
             Method::BroadcastTxCommit => "broadcast_tx_commit",
             Method::Commit => "commit",
             Method::ConsensusParams => "consensus_params",
@@ -124,6 +128,7 @@ impl FromStr for Method {
             "broadcast_evidence" => Method::BroadcastEvidence,
             "broadcast_tx_async" => Method::BroadcastTxAsync,
             "broadcast_tx_sync" => Method::BroadcastTxSync,
+            "broadcast_tx" => Method::BroadcastTx,
             "broadcast_tx_commit" => Method::BroadcastTxCommit,
             "commit" => Method::Commit,
             "consensus_params" => Method::ConsensusParams,
