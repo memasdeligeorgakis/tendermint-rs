@@ -268,7 +268,6 @@ dial-timeout = "3s"
 #######################################################
 [mempool]
 
-recheck = true
 broadcast = true
 
 # Maximum number of transactions in the mempool
