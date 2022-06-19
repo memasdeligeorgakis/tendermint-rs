@@ -215,7 +215,7 @@ laddr = "tcp://0.0.0.0:26656"
 external-address = ""
 
 # Comma separated list of seed nodes to connect to
-seeds = "c2e1bde78877975b31e6f06e77da200a38048e2b@seed-1.example.com:26656,0eafed3e9e76f626a299e1b8a79454fffe9ca83c@seed-2.example.com:26656"
+bootstrap-peers = "c2e1bde78877975b31e6f06e77da200a38048e2b@seed-1.example.com:26656,0eafed3e9e76f626a299e1b8a79454fffe9ca83c@seed-2.example.com:26656"
 
 # Comma separated list of nodes to keep persistent connections to
 persistent-peers = "tcp://70d834561f91613153e4a873f01a2cbbf1b9678d@1.2.3.4:26656,tcp://f68ed33a0baa0c734a939a9e60659566adc725cd@peer-2.example.com:26656"

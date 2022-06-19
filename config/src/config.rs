@@ -448,6 +448,13 @@ pub struct P2PConfig {
     )]
     pub external_address: Option<net::Address>,
 
+    /// List of comma seperated peers which will be used to bootstrap the address book
+    #[serde(
+        serialize_with = "serialize_comma_separated_list",
+        deserialize_with = "deserialize_comma_separated_list"
+    )]
+    pub bootstrap_peers: Vec<net::Address>,
+
     /// Comma separated list of nodes to keep persistent connections to
     #[serde(
         serialize_with = "serialize_comma_separated_list",
@@ -487,6 +494,7 @@ pub struct P2PConfig {
     pub private_peer_ids: Vec<node::Id>,
 
     /// Toggle to disable guard against peers connecting from the same ip.
+    #[serde(default)]
     pub allow_duplicate_ip: bool,
 
     /// Handshake timeout
