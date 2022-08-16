@@ -115,15 +115,6 @@ pub trait Client {
             .await
     }
 
-    /// `/broadcast_tx`: broadcast a transaction, returning the response
-    /// from `CheckTx`. Inteded to replace `broadcast_tx_sync`
-    async fn broadcast_tx(
-        &self,
-        tx: Transaction,
-    ) -> Result<broadcast::tx_sync::Response, Error> {
-        self.perform(broadcast::tx_sync::broadcast_tx::Request::new(tx)).await
-    }
-
     /// `/broadcast_tx_async`: broadcast a transaction, returning immediately.
     async fn broadcast_tx_async(
         &self,
