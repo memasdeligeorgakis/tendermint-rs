@@ -512,6 +512,9 @@ pub enum QueueType {
     Fifo,
     /// Priority queue
     Priority,
+    /// Simple priority queue
+    #[serde(rename = "simple-priority")]
+    SimplePriority,
     /// Weight deficit round robin
     Wdrr,
 }

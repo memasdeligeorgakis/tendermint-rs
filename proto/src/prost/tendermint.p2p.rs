@@ -108,6 +108,8 @@ pub struct PeerInfo {
     pub address_info: ::prost::alloc::vec::Vec<PeerAddressInfo>,
     #[prost(message, optional, tag="3")]
     pub last_connected: ::core::option::Option<super::super::google::protobuf::Timestamp>,
+    #[prost(bool, tag="4")]
+    pub inactive: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PeerAddressInfo {
