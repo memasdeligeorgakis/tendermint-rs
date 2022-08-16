@@ -149,7 +149,7 @@ pub struct RequestPrepareProposal {
     #[prost(message, optional, tag="3")]
     pub local_last_commit: ::core::option::Option<ExtendedCommitInfo>,
     #[prost(message, repeated, tag="4")]
-    pub byzantine_validators: ::prost::alloc::vec::Vec<Misbehavior>,
+    pub misbehavior: ::prost::alloc::vec::Vec<Misbehavior>,
     #[prost(int64, tag="5")]
     pub height: i64,
     #[prost(message, optional, tag="6")]
@@ -167,7 +167,7 @@ pub struct RequestProcessProposal {
     #[prost(message, optional, tag="2")]
     pub proposed_last_commit: ::core::option::Option<CommitInfo>,
     #[prost(message, repeated, tag="3")]
-    pub byzantine_validators: ::prost::alloc::vec::Vec<Misbehavior>,
+    pub misbehavior: ::prost::alloc::vec::Vec<Misbehavior>,
     /// hash is the merkle root hash of the fields of the proposed block.
     #[prost(bytes="vec", tag="4")]
     pub hash: ::prost::alloc::vec::Vec<u8>,
@@ -208,8 +208,8 @@ pub struct RequestFinalizeBlock {
     #[prost(message, optional, tag="2")]
     pub decided_last_commit: ::core::option::Option<CommitInfo>,
     #[prost(message, repeated, tag="3")]
-    pub byzantine_validators: ::prost::alloc::vec::Vec<Misbehavior>,
-    /// hash is the merkle root hash of the fields of the proposed block.
+    pub misbehavior: ::prost::alloc::vec::Vec<Misbehavior>,
+    /// hash is the merkle root hash of the fields of the decided block.
     #[prost(bytes="vec", tag="4")]
     pub hash: ::prost::alloc::vec::Vec<u8>,
     #[prost(int64, tag="5")]
@@ -376,7 +376,6 @@ pub struct ResponseDeliverTx {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResponseCommit {
-    /// reserve 1
     #[prost(int64, tag="3")]
     pub retain_height: i64,
 }
@@ -448,27 +447,11 @@ pub mod response_apply_snapshot_chunk {
 pub struct ResponsePrepareProposal {
     #[prost(message, repeated, tag="1")]
     pub tx_records: ::prost::alloc::vec::Vec<TxRecord>,
-    #[prost(bytes="vec", tag="2")]
-    pub app_hash: ::prost::alloc::vec::Vec<u8>,
-    #[prost(message, repeated, tag="3")]
-    pub tx_results: ::prost::alloc::vec::Vec<ExecTxResult>,
-    #[prost(message, repeated, tag="4")]
-    pub validator_updates: ::prost::alloc::vec::Vec<ValidatorUpdate>,
-    #[prost(message, optional, tag="5")]
-    pub consensus_param_updates: ::core::option::Option<super::types::ConsensusParams>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResponseProcessProposal {
     #[prost(enumeration="response_process_proposal::ProposalStatus", tag="1")]
     pub status: i32,
-    #[prost(bytes="vec", tag="2")]
-    pub app_hash: ::prost::alloc::vec::Vec<u8>,
-    #[prost(message, repeated, tag="3")]
-    pub tx_results: ::prost::alloc::vec::Vec<ExecTxResult>,
-    #[prost(message, repeated, tag="4")]
-    pub validator_updates: ::prost::alloc::vec::Vec<ValidatorUpdate>,
-    #[prost(message, optional, tag="5")]
-    pub consensus_param_updates: ::core::option::Option<super::types::ConsensusParams>,
 }
 /// Nested message and enum types in `ResponseProcessProposal`.
 pub mod response_process_proposal {
