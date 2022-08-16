@@ -655,6 +655,7 @@ fn incoming_fixtures() {
                     result.hash,
                     tendermint::abci::transaction::Hash::new([0; 32])
                 );
+                assert!(result.log.value().is_empty());
             }
             "commit_at_height_10" => {
                 let result = endpoint::commit::Response::from_string(content).unwrap();
