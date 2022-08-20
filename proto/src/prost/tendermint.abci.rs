@@ -7,7 +7,7 @@
 
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Request {
-    #[prost(oneof="request::Value", tags="1, 2, 3, 4, 5, 7, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19")]
+    #[prost(oneof="request::Value", tags="1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17")]
     pub value: ::core::option::Option<request::Value>,
 }
 /// Nested message and enum types in `Request`.
@@ -20,32 +20,32 @@ pub mod request {
         Flush(super::RequestFlush),
         #[prost(message, tag="3")]
         Info(super::RequestInfo),
-        #[prost(message, tag="4")]
-        InitChain(super::RequestInitChain),
         #[prost(message, tag="5")]
+        InitChain(super::RequestInitChain),
+        #[prost(message, tag="6")]
         Query(super::RequestQuery),
         #[prost(message, tag="7")]
+        BeginBlock(super::RequestBeginBlock),
+        #[prost(message, tag="8")]
         CheckTx(super::RequestCheckTx),
+        #[prost(message, tag="9")]
+        DeliverTx(super::RequestDeliverTx),
         #[prost(message, tag="10")]
-        Commit(super::RequestCommit),
+        EndBlock(super::RequestEndBlock),
         #[prost(message, tag="11")]
-        ListSnapshots(super::RequestListSnapshots),
+        Commit(super::RequestCommit),
         #[prost(message, tag="12")]
-        OfferSnapshot(super::RequestOfferSnapshot),
+        ListSnapshots(super::RequestListSnapshots),
         #[prost(message, tag="13")]
-        LoadSnapshotChunk(super::RequestLoadSnapshotChunk),
+        OfferSnapshot(super::RequestOfferSnapshot),
         #[prost(message, tag="14")]
-        ApplySnapshotChunk(super::RequestApplySnapshotChunk),
+        LoadSnapshotChunk(super::RequestLoadSnapshotChunk),
         #[prost(message, tag="15")]
-        PrepareProposal(super::RequestPrepareProposal),
+        ApplySnapshotChunk(super::RequestApplySnapshotChunk),
         #[prost(message, tag="16")]
-        ProcessProposal(super::RequestProcessProposal),
+        PrepareProposal(super::RequestPrepareProposal),
         #[prost(message, tag="17")]
-        ExtendVote(super::RequestExtendVote),
-        #[prost(message, tag="18")]
-        VerifyVoteExtension(super::RequestVerifyVoteExtension),
-        #[prost(message, tag="19")]
-        FinalizeBlock(super::RequestFinalizeBlock),
+        ProcessProposal(super::RequestProcessProposal),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -74,7 +74,7 @@ pub struct RequestInitChain {
     #[prost(string, tag="2")]
     pub chain_id: ::prost::alloc::string::String,
     #[prost(message, optional, tag="3")]
-    pub consensus_params: ::core::option::Option<super::types::ConsensusParams>,
+    pub consensus_params: ::core::option::Option<ConsensusParams>,
     #[prost(message, repeated, tag="4")]
     pub validators: ::prost::alloc::vec::Vec<ValidatorUpdate>,
     #[prost(bytes="vec", tag="5")]
@@ -94,11 +94,32 @@ pub struct RequestQuery {
     pub prove: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RequestBeginBlock {
+    #[prost(bytes="vec", tag="1")]
+    pub hash: ::prost::alloc::vec::Vec<u8>,
+    #[prost(message, optional, tag="2")]
+    pub header: ::core::option::Option<super::types::Header>,
+    #[prost(message, optional, tag="3")]
+    pub last_commit_info: ::core::option::Option<CommitInfo>,
+    #[prost(message, repeated, tag="4")]
+    pub byzantine_validators: ::prost::alloc::vec::Vec<Misbehavior>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RequestCheckTx {
     #[prost(bytes="vec", tag="1")]
     pub tx: ::prost::alloc::vec::Vec<u8>,
     #[prost(enumeration="CheckTxType", tag="2")]
     pub r#type: i32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RequestDeliverTx {
+    #[prost(bytes="vec", tag="1")]
+    pub tx: ::prost::alloc::vec::Vec<u8>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RequestEndBlock {
+    #[prost(int64, tag="1")]
+    pub height: i64,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RequestCommit {
@@ -181,53 +202,12 @@ pub struct RequestProcessProposal {
     #[prost(bytes="vec", tag="8")]
     pub proposer_address: ::prost::alloc::vec::Vec<u8>,
 }
-/// Extends a vote with application-side injection
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RequestExtendVote {
-    #[prost(bytes="vec", tag="1")]
-    pub hash: ::prost::alloc::vec::Vec<u8>,
-    #[prost(int64, tag="2")]
-    pub height: i64,
-}
-/// Verify the vote extension
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RequestVerifyVoteExtension {
-    #[prost(bytes="vec", tag="1")]
-    pub hash: ::prost::alloc::vec::Vec<u8>,
-    #[prost(bytes="vec", tag="2")]
-    pub validator_address: ::prost::alloc::vec::Vec<u8>,
-    #[prost(int64, tag="3")]
-    pub height: i64,
-    #[prost(bytes="vec", tag="4")]
-    pub vote_extension: ::prost::alloc::vec::Vec<u8>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RequestFinalizeBlock {
-    #[prost(bytes="vec", repeated, tag="1")]
-    pub txs: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
-    #[prost(message, optional, tag="2")]
-    pub decided_last_commit: ::core::option::Option<CommitInfo>,
-    #[prost(message, repeated, tag="3")]
-    pub misbehavior: ::prost::alloc::vec::Vec<Misbehavior>,
-    /// hash is the merkle root hash of the fields of the decided block.
-    #[prost(bytes="vec", tag="4")]
-    pub hash: ::prost::alloc::vec::Vec<u8>,
-    #[prost(int64, tag="5")]
-    pub height: i64,
-    #[prost(message, optional, tag="6")]
-    pub time: ::core::option::Option<super::super::google::protobuf::Timestamp>,
-    #[prost(bytes="vec", tag="7")]
-    pub next_validators_hash: ::prost::alloc::vec::Vec<u8>,
-    /// proposer_address is the address of the public key of the original proposer of the block.
-    #[prost(bytes="vec", tag="8")]
-    pub proposer_address: ::prost::alloc::vec::Vec<u8>,
-}
 //----------------------------------------
 // Response types
 
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Response {
-    #[prost(oneof="response::Value", tags="1, 2, 3, 4, 5, 6, 8, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20")]
+    #[prost(oneof="response::Value", tags="1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18")]
     pub value: ::core::option::Option<response::Value>,
 }
 /// Nested message and enum types in `Response`.
@@ -242,32 +222,32 @@ pub mod response {
         Flush(super::ResponseFlush),
         #[prost(message, tag="4")]
         Info(super::ResponseInfo),
-        #[prost(message, tag="5")]
-        InitChain(super::ResponseInitChain),
         #[prost(message, tag="6")]
+        InitChain(super::ResponseInitChain),
+        #[prost(message, tag="7")]
         Query(super::ResponseQuery),
         #[prost(message, tag="8")]
+        BeginBlock(super::ResponseBeginBlock),
+        #[prost(message, tag="9")]
         CheckTx(super::ResponseCheckTx),
+        #[prost(message, tag="10")]
+        DeliverTx(super::ResponseDeliverTx),
         #[prost(message, tag="11")]
-        Commit(super::ResponseCommit),
+        EndBlock(super::ResponseEndBlock),
         #[prost(message, tag="12")]
-        ListSnapshots(super::ResponseListSnapshots),
+        Commit(super::ResponseCommit),
         #[prost(message, tag="13")]
-        OfferSnapshot(super::ResponseOfferSnapshot),
+        ListSnapshots(super::ResponseListSnapshots),
         #[prost(message, tag="14")]
-        LoadSnapshotChunk(super::ResponseLoadSnapshotChunk),
+        OfferSnapshot(super::ResponseOfferSnapshot),
         #[prost(message, tag="15")]
-        ApplySnapshotChunk(super::ResponseApplySnapshotChunk),
+        LoadSnapshotChunk(super::ResponseLoadSnapshotChunk),
         #[prost(message, tag="16")]
-        PrepareProposal(super::ResponsePrepareProposal),
+        ApplySnapshotChunk(super::ResponseApplySnapshotChunk),
         #[prost(message, tag="17")]
-        ProcessProposal(super::ResponseProcessProposal),
+        PrepareProposal(super::ResponsePrepareProposal),
         #[prost(message, tag="18")]
-        ExtendVote(super::ResponseExtendVote),
-        #[prost(message, tag="19")]
-        VerifyVoteExtension(super::ResponseVerifyVoteExtension),
-        #[prost(message, tag="20")]
-        FinalizeBlock(super::ResponseFinalizeBlock),
+        ProcessProposal(super::ResponseProcessProposal),
     }
 }
 /// nondeterministic
@@ -289,7 +269,6 @@ pub struct ResponseFlush {
 pub struct ResponseInfo {
     #[prost(string, tag="1")]
     pub data: ::prost::alloc::string::String,
-    /// this is the software version of the application. TODO: remove?
     #[prost(string, tag="2")]
     #[serde(default)]
     pub version: ::prost::alloc::string::String,
@@ -306,7 +285,7 @@ pub struct ResponseInfo {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResponseInitChain {
     #[prost(message, optional, tag="1")]
-    pub consensus_params: ::core::option::Option<super::types::ConsensusParams>,
+    pub consensus_params: ::core::option::Option<ConsensusParams>,
     #[prost(message, repeated, tag="2")]
     pub validators: ::prost::alloc::vec::Vec<ValidatorUpdate>,
     #[prost(bytes="vec", tag="3")]
@@ -338,19 +317,38 @@ pub struct ResponseQuery {
     pub codespace: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResponseBeginBlock {
+    #[prost(message, repeated, tag="1")]
+    pub events: ::prost::alloc::vec::Vec<Event>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResponseCheckTx {
     #[prost(uint32, tag="1")]
     pub code: u32,
     #[prost(bytes="vec", tag="2")]
     pub data: ::prost::alloc::vec::Vec<u8>,
+    /// nondeterministic
+    #[prost(string, tag="3")]
+    pub log: ::prost::alloc::string::String,
+    /// nondeterministic
+    #[prost(string, tag="4")]
+    pub info: ::prost::alloc::string::String,
     #[prost(int64, tag="5")]
     pub gas_wanted: i64,
+    #[prost(int64, tag="6")]
+    pub gas_used: i64,
+    #[prost(message, repeated, tag="7")]
+    pub events: ::prost::alloc::vec::Vec<Event>,
     #[prost(string, tag="8")]
     pub codespace: ::prost::alloc::string::String,
     #[prost(string, tag="9")]
     pub sender: ::prost::alloc::string::String,
     #[prost(int64, tag="10")]
     pub priority: i64,
+    /// mempool_error is set by Tendermint.
+    /// ABCI applictions creating a ResponseCheckTX should not set mempool_error.
+    #[prost(string, tag="11")]
+    pub mempool_error: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResponseDeliverTx {
@@ -375,7 +373,19 @@ pub struct ResponseDeliverTx {
     pub codespace: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResponseEndBlock {
+    #[prost(message, repeated, tag="1")]
+    pub validator_updates: ::prost::alloc::vec::Vec<ValidatorUpdate>,
+    #[prost(message, optional, tag="2")]
+    pub consensus_param_updates: ::core::option::Option<ConsensusParams>,
+    #[prost(message, repeated, tag="3")]
+    pub events: ::prost::alloc::vec::Vec<Event>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResponseCommit {
+    /// reserve 1
+    #[prost(bytes="vec", tag="2")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
     #[prost(int64, tag="3")]
     pub retain_height: i64,
 }
@@ -445,8 +455,8 @@ pub mod response_apply_snapshot_chunk {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResponsePrepareProposal {
-    #[prost(message, repeated, tag="1")]
-    pub tx_records: ::prost::alloc::vec::Vec<TxRecord>,
+    #[prost(bytes="vec", repeated, tag="1")]
+    pub txs: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResponseProcessProposal {
@@ -463,42 +473,32 @@ pub mod response_process_proposal {
         Reject = 2,
     }
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ResponseExtendVote {
-    #[prost(bytes="vec", tag="1")]
-    pub vote_extension: ::prost::alloc::vec::Vec<u8>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ResponseVerifyVoteExtension {
-    #[prost(enumeration="response_verify_vote_extension::VerifyStatus", tag="1")]
-    pub status: i32,
-}
-/// Nested message and enum types in `ResponseVerifyVoteExtension`.
-pub mod response_verify_vote_extension {
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-    #[repr(i32)]
-    pub enum VerifyStatus {
-        Unknown = 0,
-        Accept = 1,
-        Reject = 2,
-    }
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ResponseFinalizeBlock {
-    #[prost(message, repeated, tag="1")]
-    pub events: ::prost::alloc::vec::Vec<Event>,
-    #[prost(message, repeated, tag="2")]
-    pub tx_results: ::prost::alloc::vec::Vec<ExecTxResult>,
-    #[prost(message, repeated, tag="3")]
-    pub validator_updates: ::prost::alloc::vec::Vec<ValidatorUpdate>,
-    #[prost(message, optional, tag="4")]
-    pub consensus_param_updates: ::core::option::Option<super::types::ConsensusParams>,
-    #[prost(bytes="vec", tag="5")]
-    pub app_hash: ::prost::alloc::vec::Vec<u8>,
-}
 //----------------------------------------
 // Misc.
 
+/// ConsensusParams contains all consensus-relevant parameters
+/// that can be adjusted by the abci app
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConsensusParams {
+    #[prost(message, optional, tag="1")]
+    pub block: ::core::option::Option<BlockParams>,
+    #[prost(message, optional, tag="2")]
+    pub evidence: ::core::option::Option<super::types::EvidenceParams>,
+    #[prost(message, optional, tag="3")]
+    pub validator: ::core::option::Option<super::types::ValidatorParams>,
+    #[prost(message, optional, tag="4")]
+    pub version: ::core::option::Option<super::types::VersionParams>,
+}
+/// BlockParams contains limits on the block size.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BlockParams {
+    /// Note: must be greater than 0
+    #[prost(int64, tag="1")]
+    pub max_bytes: i64,
+    /// Note: must be greater or equal to -1
+    #[prost(int64, tag="2")]
+    pub max_gas: i64,
+}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CommitInfo {
     #[prost(int32, tag="1")]
@@ -506,9 +506,6 @@ pub struct CommitInfo {
     #[prost(message, repeated, tag="2")]
     pub votes: ::prost::alloc::vec::Vec<VoteInfo>,
 }
-/// ExtendedCommitInfo is similar to CommitInfo except that it is only used in
-/// the PrepareProposal request such that Tendermint can provide vote extensions
-/// to the application.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ExtendedCommitInfo {
     /// The round at which the block proposer decided in the previous height.
@@ -520,7 +517,7 @@ pub struct ExtendedCommitInfo {
     pub votes: ::prost::alloc::vec::Vec<ExtendedVoteInfo>,
 }
 /// Event allows application developers to attach additional information to
-/// ResponseFinalizeBlock, ResponseDeliverTx, ExecTxResult
+/// ResponseBeginBlock, ResponseEndBlock, ResponseCheckTx and ResponseDeliverTx.
 /// Later, transactions may be queried using these events.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Event {
@@ -532,38 +529,13 @@ pub struct Event {
 /// EventAttribute is a single key-value pair, associated with an event.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EventAttribute {
-    #[prost(string, tag="1")]
-    pub key: ::prost::alloc::string::String,
-    #[prost(string, tag="2")]
-    pub value: ::prost::alloc::string::String,
+    #[prost(bytes="vec", tag="1")]
+    pub key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes="vec", tag="2")]
+    pub value: ::prost::alloc::vec::Vec<u8>,
     /// nondeterministic
     #[prost(bool, tag="3")]
     pub index: bool,
-}
-/// ExecTxResult contains results of executing one individual transaction.
-///
-/// * Its structure is equivalent to #ResponseDeliverTx which will be deprecated/deleted
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ExecTxResult {
-    #[prost(uint32, tag="1")]
-    pub code: u32,
-    #[prost(bytes="vec", tag="2")]
-    pub data: ::prost::alloc::vec::Vec<u8>,
-    /// nondeterministic
-    #[prost(string, tag="3")]
-    pub log: ::prost::alloc::string::String,
-    /// nondeterministic
-    #[prost(string, tag="4")]
-    pub info: ::prost::alloc::string::String,
-    #[prost(int64, tag="5")]
-    pub gas_wanted: i64,
-    #[prost(int64, tag="6")]
-    pub gas_used: i64,
-    /// nondeterministic
-    #[prost(message, repeated, tag="7")]
-    pub events: ::prost::alloc::vec::Vec<Event>,
-    #[prost(string, tag="8")]
-    pub codespace: ::prost::alloc::string::String,
 }
 /// TxResult contains results of executing the transaction.
 ///
@@ -577,30 +549,7 @@ pub struct TxResult {
     #[prost(bytes="vec", tag="3")]
     pub tx: ::prost::alloc::vec::Vec<u8>,
     #[prost(message, optional, tag="4")]
-    pub result: ::core::option::Option<ExecTxResult>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct TxRecord {
-    #[prost(enumeration="tx_record::TxAction", tag="1")]
-    pub action: i32,
-    #[prost(bytes="vec", tag="2")]
-    pub tx: ::prost::alloc::vec::Vec<u8>,
-}
-/// Nested message and enum types in `TxRecord`.
-pub mod tx_record {
-    /// TxAction contains App-provided information on what to do with a transaction that is part of a raw proposal
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-    #[repr(i32)]
-    pub enum TxAction {
-        /// Unknown action
-        Unknown = 0,
-        /// The Application did not modify this transaction.
-        Unmodified = 1,
-        /// The Application added this transaction.
-        Added = 2,
-        /// The Application wants this transaction removed from the proposal and the mempool.
-        Removed = 3,
-    }
+    pub result: ::core::option::Option<ResponseDeliverTx>,
 }
 //----------------------------------------
 // Blockchain Types
@@ -633,16 +582,13 @@ pub struct VoteInfo {
     #[prost(bool, tag="2")]
     pub signed_last_block: bool,
 }
-/// ExtendedVoteInfo
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ExtendedVoteInfo {
-    /// The validator that sent the vote.
     #[prost(message, optional, tag="1")]
     pub validator: ::core::option::Option<Validator>,
-    /// Indicates whether the validator signed the last block, allowing for rewards based on validator availability.
     #[prost(bool, tag="2")]
     pub signed_last_block: bool,
-    /// Non-deterministic extension provided by the sending validator's application.
+    /// Reserved for future use
     #[prost(bytes="vec", tag="3")]
     pub vote_extension: ::prost::alloc::vec::Vec<u8>,
 }

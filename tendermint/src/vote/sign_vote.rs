@@ -130,7 +130,7 @@ mod tests {
                 0xfb, 0x34, 0x46, 0xa8, 0x4b, 0x35,
             ])
             .unwrap(),
-            validator_index: ValidatorIndex::try_from(56789).unwrap(),
+            validator_index: ValidatorIndex::try_from(56789u32).unwrap(),
             signature: Signature::new(vec![
                 130u8, 246, 183, 50, 153, 248, 28, 57, 51, 142, 55, 217, 194, 24, 134, 212, 233,
                 100, 211, 10, 24, 174, 179, 117, 41, 65, 141, 134, 149, 239, 65, 174, 217, 42, 6,
@@ -138,8 +138,6 @@ mod tests {
                 192, 133, 130, 193, 115, 32, 206, 152, 91, 173, 10,
             ])
             .unwrap(),
-            vote_extension: vec![1u8; 32],
-            extension_signature: Signature::new([1u8; 64]).unwrap(),
         };
 
         let mut got = vec![];
@@ -218,7 +216,7 @@ mod tests {
                 0xfb, 0x34, 0x46, 0xa8, 0x4b, 0x35,
             ])
             .unwrap(),
-            validator_index: ValidatorIndex::try_from(56789).unwrap(),
+            validator_index: ValidatorIndex::try_from(56789u32).unwrap(),
             signature: Signature::new(vec![
                 130u8, 246, 183, 50, 153, 248, 28, 57, 51, 142, 55, 217, 194, 24, 134, 212, 233,
                 100, 211, 10, 24, 174, 179, 117, 41, 65, 141, 134, 149, 239, 65, 174, 217, 42, 6,
@@ -226,8 +224,6 @@ mod tests {
                 192, 133, 130, 193, 115, 32, 206, 152, 91, 173, 10,
             ])
             .unwrap(),
-            vote_extension: vec![1u8; 32],
-            extension_signature: Signature::new([1u8; 64]).unwrap(),
         };
 
         let request = SignVoteRequest {
@@ -354,7 +350,7 @@ mod tests {
                 0xfb, 0x34, 0x46, 0xa8, 0x4b, 0x35,
             ])
             .unwrap(),
-            validator_index: ValidatorIndex::try_from(56789).unwrap(),
+            validator_index: ValidatorIndex::try_from(56789u32).unwrap(),
             height: Height::from(12345_u32),
             round: Round::from(2_u16),
             timestamp: Some(dt.try_into().unwrap()),
@@ -378,8 +374,6 @@ mod tests {
                 192, 133, 130, 193, 115, 32, 206, 152, 91, 173, 10,
             ])
             .unwrap(),
-            vote_extension: vec![1u8; 32],
-            extension_signature: Signature::new(vec![1u8; 64]).unwrap(),
         };
         let got = vote.encode_vec().unwrap();
         let v = Vote::decode_vec(&got).unwrap();
@@ -421,7 +415,7 @@ mod tests {
                 0xfb, 0x34, 0x46, 0xa8, 0x4b, 0x35,
             ])
             .unwrap(),
-            validator_index: ValidatorIndex::try_from(56789).unwrap(),
+            validator_index: ValidatorIndex::try_from(56789u32).unwrap(),
             height: Height::from(12345_u32),
             round: Round::from(2_u16),
             timestamp: Some(dt.try_into().unwrap()),
@@ -437,11 +431,6 @@ mod tests {
                 .unwrap(),
             }),
             signature: Signature::new(vec![1; Ed25519Signature::BYTE_SIZE]).unwrap(),
-            vote_extension: vec![
-                10, 32, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                1, 1, 1, 1, 1, 1, 1,
-            ],
-            extension_signature: None,
         };
         let want = SignVoteRequest {
             vote,

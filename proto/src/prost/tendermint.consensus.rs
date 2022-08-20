@@ -13,10 +13,8 @@ pub struct NewRoundStep {
     #[prost(int32, tag="5")]
     pub last_commit_round: i32,
 }
-/// NewValidBlock is sent when a validator observes a valid block B in some round
-/// r,
-/// i.e., there is a Proposal for block B and 2/3+ prevotes for the block B in
-/// the round r.
+/// NewValidBlock is sent when a validator observes a valid block B in some round r,
+/// i.e., there is a Proposal for block B and 2/3+ prevotes for the block B in the round r.
 /// In case the block is also committed, then IsCommit flag is set to true.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct NewValidBlock {
@@ -87,8 +85,7 @@ pub struct VoteSetMaj23 {
     #[prost(message, optional, tag="4")]
     pub block_id: ::core::option::Option<super::types::BlockId>,
 }
-/// VoteSetBits is sent to communicate the bit-array of votes seen for the
-/// BlockID.
+/// VoteSetBits is sent to communicate the bit-array of votes seen for the BlockID.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct VoteSetBits {
     #[prost(int64, tag="1")]

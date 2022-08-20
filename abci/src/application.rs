@@ -7,14 +7,13 @@ pub mod kvstore;
 
 use tendermint_proto::abci::request::Value;
 use tendermint_proto::abci::{
-    response, Request, RequestApplySnapshotChunk, RequestCheckTx, RequestEcho, RequestExtendVote,
-    RequestFinalizeBlock, RequestInfo, RequestInitChain, RequestLoadSnapshotChunk,
-    RequestOfferSnapshot, RequestPrepareProposal, RequestProcessProposal, RequestQuery,
-    RequestVerifyVoteExtension, Response, ResponseApplySnapshotChunk, ResponseCheckTx,
-    ResponseCommit, ResponseEcho, ResponseExtendVote, ResponseFinalizeBlock, ResponseFlush,
-    ResponseInfo, ResponseInitChain, ResponseListSnapshots, ResponseLoadSnapshotChunk,
-    ResponseOfferSnapshot, ResponsePrepareProposal, ResponseProcessProposal, ResponseQuery,
-    ResponseVerifyVoteExtension,
+    response, Request, RequestApplySnapshotChunk, RequestBeginBlock, RequestCheckTx,
+    RequestDeliverTx, RequestEcho, RequestEndBlock, RequestInfo, RequestInitChain,
+    RequestLoadSnapshotChunk, RequestOfferSnapshot, RequestPrepareProposal, RequestProcessProposal,
+    RequestQuery, Response, ResponseApplySnapshotChunk, ResponseBeginBlock, ResponseCheckTx,
+    ResponseCommit, ResponseDeliverTx, ResponseEcho, ResponseEndBlock, ResponseFlush, ResponseInfo,
+    ResponseInitChain, ResponseListSnapshots, ResponseLoadSnapshotChunk, ResponseOfferSnapshot,
+    ResponsePrepareProposal, ResponseProcessProposal, ResponseQuery,
 };
 
 /// An ABCI application.
@@ -96,20 +95,18 @@ pub trait Application: Send + Clone + 'static {
         Default::default()
     }
 
-    /// Used to provide additional data along with a pre-vote
-    fn extend_vote(&self, _request: RequestExtendVote) -> ResponseExtendVote {
+    /// Initialize the next block to add to the chain
+    fn begin_block(&self, _request: RequestBeginBlock) -> ResponseBeginBlock {
         Default::default()
     }
 
-    /// Used to verify the data provided by the [`extend_vote`] method
-    fn verify_vote_extension(
-        &self,
-        _request: RequestVerifyVoteExtension,
-    ) -> ResponseVerifyVoteExtension {
+    /// Apply the state changes of a transaction
+    fn deliver_tx(&self, _request: RequestDeliverTx) -> ResponseDeliverTx {
         Default::default()
     }
 
-    fn finalize_block(&self, _request: RequestFinalizeBlock) -> ResponseFinalizeBlock {
+    /// Finish the latest block
+    fn end_block(&self, _request: RequestEndBlock) -> ResponseEndBlock {
         Default::default()
     }
 }
@@ -151,13 +148,9 @@ impl<A: Application> RequestDispatcher for A {
                 Value::ProcessProposal(req) => {
                     response::Value::ProcessProposal(self.process_proposal(req))
                 }
-                Value::ExtendVote(req) => response::Value::ExtendVote(self.extend_vote(req)),
-                Value::VerifyVoteExtension(req) => {
-                    response::Value::VerifyVoteExtension(self.verify_vote_extension(req))
-                }
-                Value::FinalizeBlock(req) => {
-                    response::Value::FinalizeBlock(self.finalize_block(req))
-                }
+                Value::BeginBlock(req) => response::Value::BeginBlock(self.begin_block(req)),
+                Value::DeliverTx(req) => response::Value::DeliverTx(self.deliver_tx(req)),
+                Value::EndBlock(req) => response::Value::EndBlock(self.end_block(req)),
             }),
         }
     }

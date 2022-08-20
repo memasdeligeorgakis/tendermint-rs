@@ -2,13 +2,10 @@
 
 use crate::error::Error;
 use crate::prelude::*;
-use crate::{block, duration::Duration, evidence, public_key};
+use crate::{block, evidence, public_key};
 use core::convert::{TryFrom, TryInto};
 use serde::{Deserialize, Serialize};
-use tendermint_proto::types::AbciParams as RawAbciParams;
 use tendermint_proto::types::ConsensusParams as RawParams;
-use tendermint_proto::types::SynchronyParams as RawSynchronyParams;
-use tendermint_proto::types::TimeoutParams as RawTimeoutParams;
 use tendermint_proto::types::ValidatorParams as RawValidatorParams;
 use tendermint_proto::types::VersionParams as RawVersionParams;
 use tendermint_proto::Protobuf;
@@ -28,12 +25,6 @@ pub struct Params {
     /// Version parameters
     #[serde(skip)] // Todo: FIXME kvstore /genesis returns '{}' instead of '{app_version: "0"}'
     pub version: Option<VersionParams>,
-
-    pub synchrony: SynchronyParams,
-
-    pub timeout: TimeoutParams,
-
-    pub abci: AbciParams,
 }
 
 impl Protobuf<RawParams> for Params {}
@@ -56,18 +47,6 @@ impl TryFrom<RawParams> for Params {
                 .ok_or_else(Error::invalid_validator_params)?
                 .try_into()?,
             version: value.version.map(TryFrom::try_from).transpose()?,
-            synchrony: value
-                .synchrony
-                .ok_or_else(Error::invalid_synchrony_params)?
-                .try_into()?,
-            timeout: value
-                .timeout
-                .ok_or_else(Error::invalid_timeout_params)?
-                .try_into()?,
-            abci: value
-                .abci
-                .ok_or_else(Error::missing_abci_params)?
-                .try_into()?,
         })
     }
 }
@@ -79,9 +58,6 @@ impl From<Params> for RawParams {
             evidence: Some(value.evidence.into()),
             validator: Some(value.validator.into()),
             version: value.version.map(From::from),
-            synchrony: Some(value.synchrony.into()),
-            timeout: Some(value.timeout.into()),
-            abci: Some(value.abci.into()),
         }
     }
 }
@@ -154,148 +130,6 @@ impl From<VersionParams> for RawVersionParams {
     fn from(value: VersionParams) -> Self {
         RawVersionParams {
             app_version: value.app_version,
-        }
-    }
-}
-
-/// Synchrony Parameters
-#[derive(Clone, Serialize, Deserialize, Debug, Eq, PartialEq, Default)]
-pub struct SynchronyParams {
-    pub message_delay: Duration,
-    pub precision: Duration,
-}
-
-impl Protobuf<RawSynchronyParams> for SynchronyParams {}
-
-impl TryFrom<RawSynchronyParams> for SynchronyParams {
-    type Error = Error;
-
-    fn try_from(value: RawSynchronyParams) -> Result<Self, Self::Error> {
-        Ok(Self {
-            message_delay: value
-                .message_delay
-                .map(Duration::try_from)
-                .transpose()?
-                .ok_or_else(Error::missing_synchrony_params)?,
-            precision: value
-                .precision
-                .map(Duration::try_from)
-                .transpose()?
-                .ok_or_else(Error::missing_synchrony_params)?,
-        })
-    }
-}
-
-impl From<SynchronyParams> for RawSynchronyParams {
-    fn from(value: SynchronyParams) -> Self {
-        RawSynchronyParams {
-            message_delay: Some(value.message_delay.into()),
-            precision: Some(value.precision.into()),
-        }
-    }
-}
-
-/// Timeout Parameters
-#[derive(Clone, Serialize, Deserialize, Debug, Eq, PartialEq, Default)]
-pub struct TimeoutParams {
-    pub propose: Duration,
-    pub propose_delta: Duration,
-    pub vote: Duration,
-    pub vote_delta: Duration,
-    pub commit: Duration,
-    pub bypass_commit_timeout: bool,
-}
-
-impl Protobuf<RawTimeoutParams> for TimeoutParams {}
-
-impl TryFrom<RawTimeoutParams> for TimeoutParams {
-    type Error = Error;
-
-    fn try_from(value: RawTimeoutParams) -> Result<Self, Self::Error> {
-        Ok(Self {
-            propose: value
-                .propose
-                .map(Duration::try_from)
-                .transpose()?
-                .ok_or_else(Error::missing_timeout_params)?,
-            propose_delta: value
-                .propose_delta
-                .map(Duration::try_from)
-                .transpose()?
-                .ok_or_else(Error::missing_timeout_params)?,
-            vote: value
-                .vote
-                .map(Duration::try_from)
-                .transpose()?
-                .ok_or_else(Error::missing_timeout_params)?,
-            vote_delta: value
-                .vote_delta
-                .map(Duration::try_from)
-                .transpose()?
-                .ok_or_else(Error::missing_timeout_params)?,
-            commit: value
-                .commit
-                .map(Duration::try_from)
-                .transpose()?
-                .ok_or_else(Error::missing_timeout_params)?,
-            bypass_commit_timeout: value.bypass_commit_timeout,
-        })
-    }
-}
-
-impl From<TimeoutParams> for RawTimeoutParams {
-    fn from(value: TimeoutParams) -> Self {
-        Self {
-            propose: Some(value.propose.into()),
-            propose_delta: Some(value.propose_delta.into()),
-            vote: Some(value.vote.into()),
-            vote_delta: Some(value.vote_delta.into()),
-            commit: Some(value.commit.into()),
-            bypass_commit_timeout: value.bypass_commit_timeout,
-        }
-    }
-}
-
-/// ABCI Params configure functionality specific to the Application Blockchain Interface.
-#[derive(Clone, Serialize, Deserialize, Debug, Eq, PartialEq)]
-pub struct AbciParams {
-    pub vote_extensions_enable_height: u64,
-    pub recheck_tx: bool,
-}
-
-impl Protobuf<RawAbciParams> for AbciParams {}
-
-impl TryFrom<RawAbciParams> for AbciParams {
-    type Error = Error;
-
-    fn try_from(params: RawAbciParams) -> Result<Self, Self::Error> {
-        Ok(Self {
-            vote_extensions_enable_height: params
-                .vote_extensions_enable_height
-                .try_into()
-                .map_err(Error::negative_height)?,
-            recheck_tx: params.recheck_tx,
-        })
-    }
-}
-
-impl From<AbciParams> for RawAbciParams {
-    fn from(params: AbciParams) -> Self {
-        RawAbciParams {
-            vote_extensions_enable_height: params
-                .vote_extensions_enable_height
-                .try_into()
-                .unwrap_or_default(),
-            recheck_tx: params.recheck_tx,
-        }
-    }
-}
-
-impl Default for AbciParams {
-    fn default() -> Self {
-        Self {
-            vote_extensions_enable_height: 0,
-            recheck_tx: true,
         }
     }
 }

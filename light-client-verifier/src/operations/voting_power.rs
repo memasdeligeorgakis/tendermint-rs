@@ -211,8 +211,6 @@ fn non_absent_vote(
         validator_address,
         validator_index,
         signature,
-        vote_extension: vec![],
-        extension_signature: None,
     })
 }
 
