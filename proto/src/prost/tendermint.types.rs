@@ -19,12 +19,6 @@ pub struct ConsensusParams {
     pub validator: ::core::option::Option<ValidatorParams>,
     #[prost(message, optional, tag="4")]
     pub version: ::core::option::Option<VersionParams>,
-    #[prost(message, optional, tag="5")]
-    pub synchrony: ::core::option::Option<SynchronyParams>,
-    #[prost(message, optional, tag="6")]
-    pub timeout: ::core::option::Option<TimeoutParams>,
-    #[prost(message, optional, tag="7")]
-    pub abci: ::core::option::Option<AbciParams>,
 }
 /// BlockParams contains limits on the block size.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -37,6 +31,12 @@ pub struct BlockParams {
     /// Note: must be greater or equal to -1
     #[prost(int64, tag="2")]
     pub max_gas: i64,
+    /// Minimum time increment between consecutive blocks (in milliseconds) If the
+    /// block header timestamp is ahead of the system clock, decrease this value.
+    ///
+    /// Not exposed to the application.
+    #[prost(int64, tag="3")]
+    pub time_iota_ms: i64,
 }
 /// EvidenceParams determine how we handle evidence of malfeasance.
 #[derive(::serde::Deserialize, ::serde::Serialize)]
@@ -55,8 +55,8 @@ pub struct EvidenceParams {
     /// attacks](<https://github.com/ethereum/wiki/wiki/Proof-of-Stake-FAQ#what-is-the-nothing-at-stake-problem-and-how-can-it-be-fixed>).
     #[prost(message, optional, tag="2")]
     pub max_age_duration: ::core::option::Option<super::super::google::protobuf::Duration>,
-    /// This sets the maximum size of total evidence in bytes that can be committed
-    /// in a single block. and should fall comfortably under the max block bytes.
+    /// This sets the maximum size of total evidence in bytes that can be committed in a single block.
+    /// and should fall comfortably under the max block bytes.
     /// Default is 1048576 or 1MB
     #[prost(int64, tag="3")]
     #[serde(with = "crate::serializers::from_str", default)]
@@ -84,88 +84,6 @@ pub struct HashedParams {
     pub block_max_bytes: i64,
     #[prost(int64, tag="2")]
     pub block_max_gas: i64,
-}
-/// SynchronyParams configure the bounds under which a proposed block's timestamp is considered valid.
-/// These parameters are part of the proposer-based timestamps algorithm. For more information,
-/// see the specification of proposer-based timestamps:
-/// <https://github.com/tendermint/tendermint/tree/master/spec/consensus/proposer-based-timestamp>
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SynchronyParams {
-    /// message_delay bounds how long a proposal message may take to reach all validators on a network
-    /// and still be considered valid.
-    #[prost(message, optional, tag="1")]
-    pub message_delay: ::core::option::Option<super::super::google::protobuf::Duration>,
-    /// precision bounds how skewed a proposer's clock may be from any validator
-    /// on the network while still producing valid proposals.
-    #[prost(message, optional, tag="2")]
-    pub precision: ::core::option::Option<super::super::google::protobuf::Duration>,
-}
-/// TimeoutParams configure the timeouts for the steps of the Tendermint consensus algorithm.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct TimeoutParams {
-    /// These fields configure the timeouts for the propose step of the Tendermint
-    /// consensus algorithm: propose is the initial timeout and propose_delta
-    /// determines how much the timeout grows in subsequent rounds.
-    /// For the first round, this propose timeout is used and for every subsequent
-    /// round, the timeout grows by propose_delta.
-    ///
-    /// For example:
-    /// With propose = 10ms, propose_delta = 5ms, the first round's propose phase
-    /// timeout would be 10ms, the second round's would be 15ms, the third 20ms and so on.
-    ///
-    /// If a node waiting for a proposal message does not receive one matching its
-    /// current height and round before this timeout, the node will issue a
-    /// nil prevote for the round and advance to the next step.
-    #[prost(message, optional, tag="1")]
-    pub propose: ::core::option::Option<super::super::google::protobuf::Duration>,
-    #[prost(message, optional, tag="2")]
-    pub propose_delta: ::core::option::Option<super::super::google::protobuf::Duration>,
-    /// vote along with vote_delta configure the timeout for both of the prevote and
-    /// precommit steps of the Tendermint consensus algorithm.
-    ///
-    /// These parameters influence the vote step timeouts in the the same way that
-    /// the propose and propose_delta parameters do to the proposal step.
-    ///
-    /// The vote timeout does not begin until a quorum of votes has been received. Once
-    /// a quorum of votes has been seen and this timeout elapses, Tendermint will
-    /// procced to the next step of the consensus algorithm. If Tendermint receives
-    /// all of the remaining votes before the end of the timeout, it will proceed
-    /// to the next step immediately.
-    #[prost(message, optional, tag="3")]
-    pub vote: ::core::option::Option<super::super::google::protobuf::Duration>,
-    #[prost(message, optional, tag="4")]
-    pub vote_delta: ::core::option::Option<super::super::google::protobuf::Duration>,
-    /// commit configures how long Tendermint will wait after receiving a quorum of
-    /// precommits before beginning consensus for the next height. This can be
-    /// used to allow slow precommits to arrive for inclusion in the next height before progressing.
-    #[prost(message, optional, tag="5")]
-    pub commit: ::core::option::Option<super::super::google::protobuf::Duration>,
-    /// bypass_commit_timeout configures the node to proceed immediately to
-    /// the next height once the node has received all precommits for a block, forgoing
-    /// the remaining commit timeout.
-    /// Setting bypass_commit_timeout false (the default) causes Tendermint to wait
-    /// for the full commit timeout.
-    #[prost(bool, tag="6")]
-    pub bypass_commit_timeout: bool,
-}
-/// ABCIParams configure functionality specific to the Application Blockchain Interface.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct AbciParams {
-    /// vote_extensions_enable_height configures the first height during which
-    /// vote extensions will be enabled. During this specified height, and for all
-    /// subsequent heights, precommit messages that do not contain valid extension data
-    /// will be considered invalid. Prior to this height, vote extensions will not
-    /// be used or accepted by validators on the network.
-    ///
-    /// Once enabled, vote extensions will be created by the application in ExtendVote,
-    /// passed to the application for validation in VerifyVoteExtension and given
-    /// to the application to use when proposing a block during PrepareProposal.
-    #[prost(int64, tag="1")]
-    pub vote_extensions_enable_height: i64,
-    /// Indicates if CheckTx should be called on all the transactions
-    /// remaining in the mempool after a block is executed.
-    #[prost(bool, tag="2")]
-    pub recheck_tx: bool,
 }
 #[derive(::serde::Deserialize, ::serde::Serialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -329,22 +247,11 @@ pub struct Vote {
     #[prost(int32, tag="7")]
     #[serde(with = "crate::serializers::from_str")]
     pub validator_index: i32,
-    /// Vote signature by the validator if they participated in consensus for the
-    /// associated block.
     #[prost(bytes="vec", tag="8")]
     #[serde(with = "crate::serializers::bytes::base64string")]
     pub signature: ::prost::alloc::vec::Vec<u8>,
-    /// Vote extension provided by the application. Only valid for precommit
-    /// messages.
-    #[prost(bytes="vec", tag="9")]
-    pub extension: ::prost::alloc::vec::Vec<u8>,
-    /// Vote extension signature by the validator if they participated in
-    /// consensus for the associated block. Only valid for precommit messages.
-    #[prost(bytes="vec", tag="10")]
-    pub extension_signature: ::prost::alloc::vec::Vec<u8>,
 }
-/// Commit contains the evidence that a block was committed by a set of
-/// validators.
+/// Commit contains the evidence that a block was committed by a set of validators.
 #[derive(::serde::Deserialize, ::serde::Serialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Commit {
@@ -374,36 +281,6 @@ pub struct CommitSig {
     #[prost(bytes="vec", tag="4")]
     #[serde(with = "crate::serializers::bytes::base64string")]
     pub signature: ::prost::alloc::vec::Vec<u8>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ExtendedCommit {
-    #[prost(int64, tag="1")]
-    pub height: i64,
-    #[prost(int32, tag="2")]
-    pub round: i32,
-    #[prost(message, optional, tag="3")]
-    pub block_id: ::core::option::Option<BlockId>,
-    #[prost(message, repeated, tag="4")]
-    pub extended_signatures: ::prost::alloc::vec::Vec<ExtendedCommitSig>,
-}
-/// ExtendedCommitSig retains all the same fields as CommitSig but adds vote
-/// extension-related fields.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ExtendedCommitSig {
-    #[prost(enumeration="BlockIdFlag", tag="1")]
-    pub block_id_flag: i32,
-    #[prost(bytes="vec", tag="2")]
-    pub validator_address: ::prost::alloc::vec::Vec<u8>,
-    #[prost(message, optional, tag="3")]
-    pub timestamp: ::core::option::Option<super::super::google::protobuf::Timestamp>,
-    #[prost(bytes="vec", tag="4")]
-    pub signature: ::prost::alloc::vec::Vec<u8>,
-    /// Vote extension data
-    #[prost(bytes="vec", tag="5")]
-    pub extension: ::prost::alloc::vec::Vec<u8>,
-    /// Vote extension signature
-    #[prost(bytes="vec", tag="6")]
-    pub extension_signature: ::prost::alloc::vec::Vec<u8>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Proposal {
@@ -452,8 +329,7 @@ pub struct BlockMeta {
     #[serde(with = "crate::serializers::from_str")]
     pub num_txs: i64,
 }
-/// TxProof represents a Merkle proof of the presence of a transaction in the
-/// Merkle tree.
+/// TxProof represents a Merkle proof of the presence of a transaction in the Merkle tree.
 #[derive(::serde::Deserialize, ::serde::Serialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TxProof {
@@ -466,7 +342,7 @@ pub struct TxProof {
     #[prost(message, optional, tag="3")]
     pub proof: ::core::option::Option<super::crypto::Proof>,
 }
-/// BlockIdFlag indicates which BlockID the signature is for
+/// BlockIdFlag indicates which BlcokID the signature is for
 #[derive(::num_derive::FromPrimitive, ::num_derive::ToPrimitive)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
@@ -509,8 +385,7 @@ pub mod evidence {
         LightClientAttackEvidence(super::LightClientAttackEvidence),
     }
 }
-/// DuplicateVoteEvidence contains evidence of a validator signed two conflicting
-/// votes.
+/// DuplicateVoteEvidence contains evidence of a validator signed two conflicting votes.
 #[derive(::serde::Deserialize, ::serde::Serialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DuplicateVoteEvidence {
@@ -525,8 +400,7 @@ pub struct DuplicateVoteEvidence {
     #[prost(message, optional, tag="5")]
     pub timestamp: ::core::option::Option<super::super::google::protobuf::Timestamp>,
 }
-/// LightClientAttackEvidence contains evidence of a set of validators attempting
-/// to mislead a light client.
+/// LightClientAttackEvidence contains evidence of a set of validators attempting to mislead a light client.
 #[derive(::serde::Deserialize, ::serde::Serialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct LightClientAttackEvidence {
@@ -614,18 +488,5 @@ pub struct CanonicalVote {
     #[prost(message, optional, tag="5")]
     pub timestamp: ::core::option::Option<super::super::google::protobuf::Timestamp>,
     #[prost(string, tag="6")]
-    pub chain_id: ::prost::alloc::string::String,
-}
-/// CanonicalVoteExtension provides us a way to serialize a vote extension from
-/// a particular validator such that we can sign over those serialized bytes.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CanonicalVoteExtension {
-    #[prost(bytes="vec", tag="1")]
-    pub extension: ::prost::alloc::vec::Vec<u8>,
-    #[prost(sfixed64, tag="2")]
-    pub height: i64,
-    #[prost(sfixed64, tag="3")]
-    pub round: i64,
-    #[prost(string, tag="4")]
     pub chain_id: ::prost::alloc::string::String,
 }

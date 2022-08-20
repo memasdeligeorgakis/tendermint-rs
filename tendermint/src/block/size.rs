@@ -19,6 +19,13 @@ pub struct Size {
     /// Maximum amount of gas which can be spent on a block
     #[serde(with = "serializers::from_str")]
     pub max_gas: i64,
+
+    /// Minimum time increment between consecutive blocks (in milliseconds) If the
+    /// block header timestamp is ahead of the system clock, decrease this value.
+    ///
+    /// Not exposed to the application.
+    #[serde(with = "serializers::from_str")]
+    pub time_iota_ms: u64,
 }
 
 impl Size {
@@ -40,6 +47,7 @@ impl TryFrom<RawSize> for Size {
                 .try_into()
                 .map_err(Error::integer_overflow)?,
             max_gas: value.max_gas,
+            time_iota_ms: value.time_iota_ms as u64,
         })
     }
 }
@@ -50,6 +58,7 @@ impl From<Size> for RawSize {
         RawSize {
             max_bytes: value.max_bytes as i64,
             max_gas: value.max_gas,
+            time_iota_ms: value.time_iota_ms as i64,
         }
     }
 }

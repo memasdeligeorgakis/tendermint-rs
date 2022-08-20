@@ -4,6 +4,12 @@ pub mod consensus {
     include!("prost/tendermint.consensus.rs");
 }
 
+pub mod rpc {
+    pub mod grpc {
+        include!("prost/tendermint.rpc.grpc.rs");
+    }
+}
+
 pub mod p2p {
     include!("prost/tendermint.p2p.rs");
 }
@@ -12,6 +18,10 @@ pub mod libs {
     pub mod bits {
         include!("prost/tendermint.libs.bits.rs");
     }
+}
+
+pub mod blockchain {
+    include!("prost/tendermint.blockchain.rs");
 }
 
 pub mod crypto {
@@ -26,12 +36,12 @@ pub mod statesync {
     include!("prost/tendermint.statesync.rs");
 }
 
-pub mod types {
-    include!("prost/tendermint.types.rs");
+pub mod store {
+    include!("prost/tendermint.store.rs");
 }
 
-pub mod blocksync {
-    include!("prost/tendermint.blocksync.rs");
+pub mod types {
+    include!("prost/tendermint.types.rs");
 }
 
 pub mod version {
@@ -52,5 +62,5 @@ pub mod privval {
 
 pub mod meta {
     pub const REPOSITORY: &str = "https://github.com/tendermint/tendermint";
-    pub const COMMITISH: &str = "v0.36.x";
+    pub const COMMITISH: &str = "feature/abci++ppp";
 }

@@ -6,7 +6,7 @@ pub const TENDERMINT_REPO: &str = "https://github.com/tendermint/tendermint";
 // Tag: v0.34.0-rc4
 // Branch: master
 // Commit ID (full length): d7d0ffea13c60c98b812d243ba5a2c375f341c15
-pub const TENDERMINT_COMMITISH: &str = "v0.36.x"; //"deb30f06c135bd02fb1daa8e30ebf63ad92b88d5";
+pub const TENDERMINT_COMMITISH: &str = "feature/abci++ppp";
 /// Gogo repository URL
 pub const GOGO_REPO: &str = "https://github.com/gogo/protobuf";
 pub const GOGO_COMMITISH: &str = "v1.3.2";
