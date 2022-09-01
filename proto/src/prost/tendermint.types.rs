@@ -31,12 +31,6 @@ pub struct BlockParams {
     /// Note: must be greater or equal to -1
     #[prost(int64, tag="2")]
     pub max_gas: i64,
-    /// Minimum time increment between consecutive blocks (in milliseconds) If the
-    /// block header timestamp is ahead of the system clock, decrease this value.
-    ///
-    /// Not exposed to the application.
-    #[prost(int64, tag="3")]
-    pub time_iota_ms: i64,
 }
 /// EvidenceParams determine how we handle evidence of malfeasance.
 #[derive(::serde::Deserialize, ::serde::Serialize)]
@@ -73,7 +67,7 @@ pub struct ValidatorParams {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct VersionParams {
     #[prost(uint64, tag="1")]
-    pub app_version: u64,
+    pub app: u64,
 }
 /// HashedParams is a subset of ConsensusParams.
 ///

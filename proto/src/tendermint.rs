@@ -20,10 +20,6 @@ pub mod libs {
     }
 }
 
-pub mod blockchain {
-    include!("prost/tendermint.blockchain.rs");
-}
-
 pub mod crypto {
     include!("prost/tendermint.crypto.rs");
 }
@@ -44,6 +40,10 @@ pub mod types {
     include!("prost/tendermint.types.rs");
 }
 
+pub mod blocksync {
+    include!("prost/tendermint.blocksync.rs");
+}
+
 pub mod version {
     include!("prost/tendermint.version.rs");
 }
@@ -62,5 +62,5 @@ pub mod privval {
 
 pub mod meta {
     pub const REPOSITORY: &str = "https://github.com/tendermint/tendermint";
-    pub const COMMITISH: &str = "feature/abci++ppp";
+    pub const COMMITISH: &str = "v0.37.x";
 }
