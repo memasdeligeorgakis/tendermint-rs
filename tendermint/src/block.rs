@@ -43,6 +43,7 @@ pub struct Block {
     pub data: transaction::Data,
 
     /// Evidence of malfeasance
+    #[serde(default)]
     pub evidence: evidence::Data,
 
     /// Last commit
