@@ -121,7 +121,7 @@ impl TryFrom<RawVersionParams> for VersionParams {
 
     fn try_from(value: RawVersionParams) -> Result<Self, Self::Error> {
         Ok(Self {
-            app_version: value.app_version,
+            app_version: value.app,
         })
     }
 }
@@ -129,7 +129,7 @@ impl TryFrom<RawVersionParams> for VersionParams {
 impl From<VersionParams> for RawVersionParams {
     fn from(value: VersionParams) -> Self {
         RawVersionParams {
-            app_version: value.app_version,
+            app: value.app_version,
         }
     }
 }
