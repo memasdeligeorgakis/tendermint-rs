@@ -79,7 +79,7 @@ impl TryFrom<RawBlock> for Block {
             data: value.data.ok_or_else(Error::missing_data)?.into(),
             evidence: value
                 .evidence
-                .ok_or_else(Error::missing_evidence)?
+                .unwrap_or_default()
                 .try_into()?,
             last_commit,
         })
