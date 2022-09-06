@@ -40,9 +40,7 @@
           "data": {
             "txs": null
           },
-          "evidence": {
-            "evidence": null
-          },
+          "evidence": null,
           "last_commit": {
             "height": "9",
             "round": 0,

@@ -9,9 +9,7 @@
           "data": {
             "txs": []
           },
-          "evidence": {
-            "evidence": []
-          },
+          "evidence": [],
           "header": {
             "app_hash": "0600000000000000",
             "chain_id": "dockerchain",

@@ -43,7 +43,8 @@ pub struct Block {
     pub data: transaction::Data,
 
     /// Evidence of malfeasance
-    pub evidence: evidence::Data,
+    #[serde(default)]
+    pub evidence: Option<Vec<evidence::Evidence>>,
 
     /// Last commit
     #[serde(with = "crate::serializers::optional")]
@@ -73,13 +74,14 @@ impl TryFrom<RawBlock> for Block {
         //    return Err(Kind::InvalidFirstBlock.context("last_commit is not null on first
         // height").into());
         //}
+        let evidence: evidence::Data = value
+                .evidence
+                .ok_or_else(Error::missing_evidence)?
+                .try_into()?;
         Ok(Block {
             header,
             data: value.data.ok_or_else(Error::missing_data)?.into(),
-            evidence: value
-                .evidence
-                .ok_or_else(Error::missing_evidence)?
-                .try_into()?,
+            evidence: Some(evidence.into_vec()),
             last_commit,
         })
     }
@@ -87,10 +89,11 @@ impl TryFrom<RawBlock> for Block {
 
 impl From<Block> for RawBlock {
     fn from(value: Block) -> Self {
+        let data = evidence::Data::new(value.evidence.unwrap_or_default());
         RawBlock {
             header: Some(value.header.into()),
             data: Some(value.data.into()),
-            evidence: Some(value.evidence.into()),
+            evidence: Some(data.into()),
             last_commit: value.last_commit.map(Into::into),
         }
     }
@@ -117,7 +120,7 @@ impl Block {
         Ok(Block {
             header,
             data,
-            evidence,
+            evidence: Some(evidence.into_vec()),
             last_commit,
         })
     }
@@ -133,8 +136,8 @@ impl Block {
     }
 
     /// Get evidence
-    pub fn evidence(&self) -> &evidence::Data {
-        &self.evidence
+    pub fn evidence(&self) -> evidence::Data {
+        evidence::Data::new(self.evidence.clone().unwrap_or_default())
     }
 
     /// Get last commit

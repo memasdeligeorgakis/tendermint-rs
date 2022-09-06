@@ -6,9 +6,7 @@
       "data": {
         "txs": []
       },
-      "evidence": {
-        "evidence": []
-      },
+      "evidence": [],
       "header": {
         "app_hash": "",
         "chain_id": "dockerchain",

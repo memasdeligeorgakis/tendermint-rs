@@ -9,9 +9,7 @@
           "data": {
             "txs": []
           },
-          "evidence": {
-            "evidence": []
-          },
+          "evidence": [],
           "header": {
             "app_hash": "C7377558A0F6DF24BEDDCB81C542790FB3D8D6BDD10F8A0F0151421718B70D67",
             "chain_id": "ibc-0",
