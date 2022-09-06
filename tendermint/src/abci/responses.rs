@@ -31,6 +31,37 @@ pub struct Responses {
     pub end_block: Option<EndBlock>,
 }
 
+/// Exec TX result.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ExecTxResult {
+    /// ABCI application response code
+    pub code: Code,
+
+    /// ABCI application data
+    #[serde(with = "serializers::nullable")]
+    pub data: Data,
+
+    /// ABCI log data (nondeterministic)
+    pub log: Log,
+
+    /// ABCI info (nondeterministic)
+    pub info: Info,
+
+    /// Amount of gas wanted
+    #[serde(default)]
+    pub gas_wanted: Gas,
+
+    /// Amount of gas used
+    #[serde(default)]
+    pub gas_used: Gas,
+
+    /// Events
+    pub events: Vec<Event>,
+
+    /// Codespace
+    pub codespace: Codespace,
+}
+
 /// Return an empty vec in the event `deliver_tx` is `null`
 fn deserialize_deliver_tx<'de, D>(deserializer: D) -> Result<Vec<DeliverTx>, D::Error>
 where

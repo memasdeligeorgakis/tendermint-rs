@@ -452,9 +452,8 @@ fn incoming_fixtures() {
             }
             "block_results_at_height_10" => {
                 let result = endpoint::block_results::Response::from_string(content).unwrap();
-                assert!(result.begin_block_events.is_none());
+                assert!(result.finalize_block_events.is_none());
                 assert!(result.consensus_param_updates.is_none());
-                assert!(result.end_block_events.is_none());
                 assert_eq!(result.height.value(), 10);
                 assert!(result.txs_results.is_none());
                 assert!(result.validator_updates.is_empty());

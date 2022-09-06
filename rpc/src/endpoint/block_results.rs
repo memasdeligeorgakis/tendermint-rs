@@ -41,13 +41,14 @@ pub struct Response {
     pub height: block::Height,
 
     /// Txs results (might be explicit null)
-    pub txs_results: Option<Vec<abci::DeliverTx>>,
+    pub txs_results: Option<Vec<abci::ExecTxResult>>,
 
-    /// Begin block events (might be explicit null)
-    pub begin_block_events: Option<Vec<abci::Event>>,
+    /// Total gas used
+    #[serde(default)]
+    pub total_gas_used: abci::Gas,
 
-    /// End block events (might be explicit null)
-    pub end_block_events: Option<Vec<abci::Event>>,
+    /// Finalize block events (might be explicit null)
+    pub finalize_block_events: Option<Vec<abci::Event>>,
 
     /// Validator updates (might be explicit null)
     #[serde(deserialize_with = "abci::responses::deserialize_validator_updates")]

@@ -24,6 +24,6 @@ pub use self::{
     info::Info,
     log::Log,
     path::Path,
-    responses::{DeliverTx, Event, Responses},
+    responses::{DeliverTx, Event, ExecTxResult, Responses},
     transaction::Transaction,
 };
