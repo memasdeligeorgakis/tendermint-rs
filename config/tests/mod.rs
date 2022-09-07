@@ -27,7 +27,6 @@ fn config_toml_parser() {
         "tcp://127.0.0.1:26658".parse::<net::Address>().unwrap()
     );
     assert_eq!(config.moniker.as_ref(), "technodrome");
-    assert_eq!(config.mode, Mode::Validator);
     assert_eq!(config.db_backend, DbBackend::GoLevelDb);
     assert_eq!(config.db_dir, PathBuf::from("data"));
     assert_eq!(config.log_level.global, Some("info".to_string()));
@@ -36,15 +35,7 @@ fn config_toml_parser() {
     assert_eq!(config.log_level.get("*"), Some("info"));
     assert_eq!(config.log_format, LogFormat::Plain);
     assert_eq!(config.genesis_file, PathBuf::from("config/genesis.json"));
-    assert_eq!(
-        config.priv_validator.key_file,
-        PathBuf::from("config/priv_validator_key.json")
-    );
-    assert_eq!(
-        config.priv_validator.state_file,
-        PathBuf::from("data/priv_validator_state.json")
-    );
-    assert_eq!(config.priv_validator.laddr, None);
+
     assert_eq!(config.node_key_file, PathBuf::from("config/node_key.json"));
     assert_eq!(config.abci, AbciMode::Socket);
     assert!(!config.filter_peers);
@@ -80,21 +71,20 @@ fn config_toml_parser() {
     // peer to peer configuration options
 
     let p2p = &config.p2p;
-    assert_eq!(p2p.queue_type, QueueType::Priority);
     assert_eq!(
         p2p.laddr,
         "tcp://0.0.0.0:26656".parse::<net::Address>().unwrap()
     );
     assert_eq!(p2p.external_address, None);
-    assert_eq!(p2p.bootstrap_peers.len(), 2);
+    assert_eq!(p2p.seeds.len(), 2);
     assert_eq!(
-        p2p.bootstrap_peers[0],
+        p2p.seeds[0],
         "tcp://c2e1bde78877975b31e6f06e77da200a38048e2b@seed-1.example.com:26656"
             .parse::<net::Address>()
             .unwrap()
     );
     assert_eq!(
-        p2p.bootstrap_peers[1],
+        p2p.seeds[1],
         "tcp://0eafed3e9e76f626a299e1b8a79454fffe9ca83c@seed-2.example.com:26656"
             .parse::<net::Address>()
             .unwrap()
@@ -112,8 +102,6 @@ fn config_toml_parser() {
             .parse::<net::Address>()
             .unwrap()
     );
-    assert_eq!(p2p.max_connections, 64);
-    assert_eq!(p2p.max_incoming_connection_attempts, 100);
     assert!(!p2p.upnp);
     assert_eq!(*p2p.flush_throttle_timeout, Duration::from_millis(100));
     assert_eq!(p2p.max_packet_msg_payload_size, 1024);
@@ -173,7 +161,7 @@ fn config_toml_parser() {
     // transactions indexer configuration options
 
     let tx_index = &config.tx_index;
-    assert_eq!(tx_index.indexer[0], TxIndexer::Kv);
+    assert_eq!(tx_index.indexer, TxIndexer::Kv);
 
     // instrumentation configuration options
 
