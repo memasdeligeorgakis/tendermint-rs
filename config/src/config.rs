@@ -20,7 +20,6 @@ use tendermint::{genesis::Genesis, node, Moniker, Timeout};
 
 /// Tendermint `config.toml` file
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "kebab-case")]
 pub struct TendermintConfig {
     /// TCP or UNIX socket address of the ABCI application,
     /// or the name of an ABCI application compiled in with the Tendermint binary.
@@ -28,9 +27,6 @@ pub struct TendermintConfig {
 
     /// A custom human readable name for this node
     pub moniker: Moniker,
-
-    /// The mode in which to run Tendermint: `seed | full | validator`
-    pub mode: Mode,
 
     /// Database backend: `goleveldb | cleveldb | boltdb | rocksdb | badgerdb`
     pub db_backend: DbBackend,
@@ -57,9 +53,20 @@ pub struct TendermintConfig {
     /// If `true`, query the ABCI app on connecting to a new peer
     /// so the app can decide if we should keep the connection or not
     pub filter_peers: bool,
+    /// Path to the JSON file containing the private key to use as a validator in the consensus
+    /// protocol
+    pub priv_validator_key_file: Option<PathBuf>,
 
-    /// Configuration for the private validator
-    pub priv_validator: PrivValidatorConfig,
+    /// Path to the JSON file containing the last sign state of a validator
+    pub priv_validator_state_file: PathBuf,
+
+    /// TCP or UNIX socket address for Tendermint to listen on for
+    /// connections from an external PrivValidator process
+    #[serde(
+        deserialize_with = "deserialize_optional_value",
+        serialize_with = "serialize_optional_value"
+    )]
+    pub priv_validator_laddr: Option<net::Address>,
 
     /// rpc server configuration options
     pub rpc: RpcConfig,
@@ -305,7 +312,6 @@ pub struct PrivValidatorConfig {
 
 /// Tendermint `config.toml` file's `[rpc]` section
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "kebab-case")]
 pub struct RpcConfig {
     /// TCP or UNIX socket address for the RPC server to listen on
     pub laddr: net::Address,
@@ -334,17 +340,6 @@ pub struct RpcConfig {
 
     /// Maximum number of unique queries a given client can `/subscribe` to.
     pub max_subscriptions_per_client: u64,
-
-    /// The time window size for the event log. All events up to this long before
-    /// the latest (up to EventLogMaxItems) will be available for subscribers to
-    /// fetch via the /events method.  If 0 (the default) the event log and the
-    /// /events RPC method are disabled.
-    pub event_log_window_size: Timeout,
-
-    ///  The maxiumum number of events that may be retained by the event log.  If
-    ///this value is 0, no upper limit is set. Otherwise, items in excess of
-    /// this number will be discarded from the event log.
-    pub event_log_max_items: u64,
 
     /// How long to wait for a tx to be committed during `/broadcast_tx_commit`.
     pub timeout_broadcast_tx_commit: Timeout,
@@ -430,11 +425,7 @@ impl fmt::Display for CorsHeader {
 
 /// peer to peer configuration options
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "kebab-case")]
 pub struct P2PConfig {
-    /// The type of queue used in the p2p layer
-    pub queue_type: QueueType,
-
     /// Address to listen for incoming connections
     pub laddr: net::Address,
 
@@ -448,12 +439,12 @@ pub struct P2PConfig {
     )]
     pub external_address: Option<net::Address>,
 
-    /// List of comma seperated peers which will be used to bootstrap the address book
+    /// Comma separated list of seed nodes to connect to
     #[serde(
         serialize_with = "serialize_comma_separated_list",
         deserialize_with = "deserialize_comma_separated_list"
     )]
-    pub bootstrap_peers: Vec<net::Address>,
+    pub seeds: Vec<net::Address>,
 
     /// Comma separated list of nodes to keep persistent connections to
     #[serde(
@@ -465,11 +456,29 @@ pub struct P2PConfig {
     /// UPNP port forwarding
     pub upnp: bool,
 
-    /// Maximum number of incoming connection attempts
-    pub max_incoming_connection_attempts: u64,
+    /// Path to address book
+    pub addr_book_file: PathBuf,
 
-    /// Maximum number of connections (inbound and outbound)
-    pub max_connections: u64,
+    /// Set `true` for strict address routability rules
+    /// Set `false` for private or local networks
+    pub addr_book_strict: bool,
+
+    /// Maximum number of inbound peers
+    pub max_num_inbound_peers: u64,
+
+    /// Maximum number of outbound peers to connect to, excluding persistent peers
+    pub max_num_outbound_peers: u64,
+
+    /// List of node IDs, to which a connection will be (re)established ignoring any existing
+    /// limits
+    #[serde(
+        serialize_with = "serialize_comma_separated_list",
+        deserialize_with = "deserialize_comma_separated_list"
+    )]
+    pub unconditional_peer_ids: Vec<node::Id>,
+
+    /// Maximum pause when redialing a persistent peer (if zero, exponential backoff is used)
+    pub persistent_peers_max_dial_period: Timeout,
 
     /// Time to wait before flushing messages out on the connection
     pub flush_throttle_timeout: Timeout,
@@ -486,6 +495,12 @@ pub struct P2PConfig {
     /// Set `true` to enable the peer-exchange reactor
     pub pex: bool,
 
+    /// Seed mode, in which node constantly crawls the network and looks for
+    /// peers. If another node asks it for addresses, it responds and disconnects.
+    ///
+    /// Does not work if the peer-exchange reactor is disabled.
+    pub seed_mode: bool,
+
     /// Comma separated list of peer IDs to keep private (will not be gossiped to other peers)
     #[serde(
         serialize_with = "serialize_comma_separated_list",
@@ -494,7 +509,6 @@ pub struct P2PConfig {
     pub private_peer_ids: Vec<node::Id>,
 
     /// Toggle to disable guard against peers connecting from the same ip.
-    #[serde(default)]
     pub allow_duplicate_ip: bool,
 
     /// Handshake timeout
@@ -504,27 +518,21 @@ pub struct P2PConfig {
     pub dial_timeout: Timeout,
 }
 
-/// The type of queue used in the p2p layer
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "lowercase")]
-pub enum QueueType {
-    /// First in, first out
-    Fifo,
-    /// Priority queue
-    Priority,
-    /// Simple priority queue
-    #[serde(rename = "simple-priority")]
-    SimplePriority,
-    /// Weight deficit round robin
-    Wdrr,
-}
-
 /// mempool configuration options
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "kebab-case")]
 pub struct MempoolConfig {
+    /// Recheck enabled
+    pub recheck: bool,
+
     /// Broadcast enabled
     pub broadcast: bool,
+
+    /// WAL dir
+    #[serde(
+    deserialize_with = "deserialize_optional_value",
+    serialize_with = "serialize_optional_value"
+    )]
+    pub wal_dir: Option<PathBuf>,
 
     /// Maximum number of transactions in the mempool
     pub size: u64,
@@ -555,7 +563,6 @@ pub struct MempoolConfig {
 
 /// consensus configuration options
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "kebab-case")]
 pub struct ConsensusConfig {
     /// Path to WAL file
     pub wal_file: PathBuf,
@@ -585,7 +592,7 @@ pub struct ConsensusConfig {
 pub struct TxIndexConfig {
     /// What indexer to use for transactions
     #[serde(default)]
-    pub indexer: [TxIndexer; 1],
+    pub indexer: TxIndexer,
 }
 
 /// What indexer to use for transactions
@@ -614,7 +621,6 @@ impl Default for TxIndexer {
 
 /// instrumentation configuration options
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "kebab-case")]
 pub struct InstrumentationConfig {
     /// When `true`, Prometheus metrics are served under /metrics on
     /// PrometheusListenAddr.
@@ -633,7 +639,6 @@ pub struct InstrumentationConfig {
 
 /// statesync configuration options
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "kebab-case")]
 pub struct StatesyncConfig {
     /// State sync rapidly bootstraps a new node by discovering, fetching, and restoring a state
     /// machine snapshot from peers instead of fetching and replaying historical blocks.
@@ -641,11 +646,6 @@ pub struct StatesyncConfig {
     /// sync is not attempted if the node has any local state (LastBlockHeight > 0). The node
     /// will have a truncated block history, starting from the height of the snapshot.
     pub enable: bool,
-
-    /// State sync uses light client verification to verify state. This can be done either through the
-    /// P2P layer or RPC layer. Set this to true to use the P2P layer. If false (default), RPC layer
-    /// will be used.
-    pub use_p2p: bool,
 
     /// RPC servers (comma-separated) for light client verification of the synced state machine and
     /// retrieval of state data for node bootstrapping. Also needs a trusted height and
@@ -655,8 +655,8 @@ pub struct StatesyncConfig {
     /// For Cosmos SDK-based chains, trust-period should usually be about 2/3 of the unbonding time
     /// (~2 weeks) during which they can be financially punished (slashed) for misbehavior.
     #[serde(
-        serialize_with = "serialize_comma_separated_list",
-        deserialize_with = "deserialize_comma_separated_list"
+    serialize_with = "serialize_comma_separated_list",
+    deserialize_with = "deserialize_comma_separated_list"
     )]
     pub rpc_servers: Vec<String>,
 
@@ -675,17 +675,6 @@ pub struct StatesyncConfig {
     /// Temporary directory for state sync snapshot chunks, defaults to the OS tempdir (typically
     /// /tmp). Will create a new, randomly named directory within, and remove it when done.
     pub temp_dir: String,
-
-    /// The timeout duration before re-requesting a chunk, possibly from a different
-    /// peer (default: 15 seconds).
-    pub chunk_request_timeout: Timeout,
-
-    /// The number of concurrent chunk and block fetchers to run (default: 4).
-    #[serde(
-        serialize_with = "serialize_to_string",
-        deserialize_with = "deserialize_from_string"
-    )]
-    pub fetchers: u64,
 }
 
 /// fastsync configuration options
@@ -770,25 +759,4 @@ where
 {
     let str_list = list.iter().map(|addr| addr.to_string()).collect::<Vec<_>>();
     str_list.join(",").serialize(serializer)
-}
-
-/// Deserialize a string into another primitive type
-fn deserialize_from_string<'de, T, D>(deserializer: D) -> Result<T, D::Error>
-where
-    D: de::Deserializer<'de>,
-    T: FromStr,
-    <T as FromStr>::Err: core::fmt::Debug,
-{
-    let string = String::deserialize(deserializer)?;
-    T::from_str(string.as_str()).map_err(|e| D::Error::custom(format!("{:?}", e)))
-}
-
-/// Serialize a primitive type as its string representation
-fn serialize_to_string<S, T>(field: T, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: ser::Serializer,
-    T: ToString,
-{
-    let string = field.to_string();
-    serializer.serialize_str(string.as_str())
 }
