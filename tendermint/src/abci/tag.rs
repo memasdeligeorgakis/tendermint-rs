@@ -4,7 +4,6 @@ use crate::error::Error;
 use crate::prelude::*;
 use core::{fmt, str::FromStr};
 use serde::{Deserialize, Serialize};
-use tendermint_proto::serializers::bytes::base64string;
 
 /// Tags
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -18,13 +17,7 @@ pub struct Tag {
 
 /// Tag keys
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize)]
-pub struct Key(
-    #[serde(
-        serialize_with = "base64string::serialize",
-        deserialize_with = "base64string::deserialize_to_string"
-    )]
-    String,
-);
+pub struct Key(String);
 
 impl AsRef<str> for Key {
     fn as_ref(&self) -> &str {
@@ -48,13 +41,7 @@ impl fmt::Display for Key {
 
 /// Tag values
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct Value(
-    #[serde(
-        serialize_with = "base64string::serialize",
-        deserialize_with = "base64string::deserialize_to_string"
-    )]
-    String,
-);
+pub struct Value(String);
 
 impl AsRef<str> for Value {
     fn as_ref(&self) -> &str {
@@ -82,7 +69,7 @@ mod test {
 
     #[test]
     fn tag_serde() {
-        let json = r#"{"key": "cGFja2V0X3RpbWVvdXRfaGVpZ2h0", "value": "MC00ODQw"}"#;
+        let json = r#"{"key": "packet_timeout_height", "value": "0-4840"}"#;
         let tag: Tag = serde_json::from_str(json).unwrap();
         assert_eq!("packet_timeout_height", tag.key.0);
         assert_eq!("0-4840", tag.value.0);
