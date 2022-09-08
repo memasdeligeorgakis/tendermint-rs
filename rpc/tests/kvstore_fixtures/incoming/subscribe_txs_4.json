@@ -13,23 +13,23 @@
                 "attributes": [
                   {
                     "index": true,
-                    "key": "Y3JlYXRvcg==",
-                    "value": "Q29zbW9zaGkgTmV0b3dva28="
+                    "key": "creator",
+                    "value": "Cosmoshi Netowoko"
                   },
                   {
                     "index": true,
-                    "key": "a2V5",
-                    "value": "dHg0"
+                    "key": "key",
+                    "value": "tx4"
                   },
                   {
                     "index": true,
-                    "key": "aW5kZXhfa2V5",
-                    "value": "aW5kZXggaXMgd29ya2luZw=="
+                    "key": "index_key",
+                    "value": "index is working"
                   },
                   {
                     "index": false,
-                    "key": "bm9pbmRleF9rZXk=",
-                    "value": "aW5kZXggaXMgd29ya2luZw=="
+                    "key": "noindex_key",
+                    "value": "index is working"
                   }
                 ],
                 "type": "app"
