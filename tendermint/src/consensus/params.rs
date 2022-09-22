@@ -14,13 +14,13 @@ use tendermint_proto::Protobuf;
 #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq)]
 pub struct Params {
     /// Block size parameters
-    pub block: block::Size,
+    pub block: Option<block::Size>,
 
     /// Evidence parameters
-    pub evidence: evidence::Params,
+    pub evidence: Option<evidence::Params>,
 
     /// Validator parameters
-    pub validator: ValidatorParams,
+    pub validator: Option<ValidatorParams>,
 
     /// Version parameters
     #[serde(skip)] // Todo: FIXME kvstore /genesis returns '{}' instead of '{app_version: "0"}'
@@ -34,18 +34,9 @@ impl TryFrom<RawParams> for Params {
 
     fn try_from(value: RawParams) -> Result<Self, Self::Error> {
         Ok(Self {
-            block: value
-                .block
-                .ok_or_else(|| Error::invalid_block("missing block".to_string()))?
-                .try_into()?,
-            evidence: value
-                .evidence
-                .ok_or_else(Error::invalid_evidence)?
-                .try_into()?,
-            validator: value
-                .validator
-                .ok_or_else(Error::invalid_validator_params)?
-                .try_into()?,
+            block: value.block.map(TryInto::try_into).transpose()?,
+            evidence: value.evidence.map(TryInto::try_into).transpose()?,
+            validator: value.validator.map(TryInto::try_into).transpose()?,
             version: value.version.map(TryFrom::try_from).transpose()?,
         })
     }
@@ -54,9 +45,9 @@ impl TryFrom<RawParams> for Params {
 impl From<Params> for RawParams {
     fn from(value: Params) -> Self {
         RawParams {
-            block: Some(value.block.into()),
-            evidence: Some(value.evidence.into()),
-            validator: Some(value.validator.into()),
+            block: value.block.map(Into::into),
+            evidence: value.evidence.map(Into::into),
+            validator: value.validator.map(Into::into),
             version: value.version.map(From::from),
         }
     }
