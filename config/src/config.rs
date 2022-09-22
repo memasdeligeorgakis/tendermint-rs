@@ -529,8 +529,8 @@ pub struct MempoolConfig {
 
     /// WAL dir
     #[serde(
-    deserialize_with = "deserialize_optional_value",
-    serialize_with = "serialize_optional_value"
+        deserialize_with = "deserialize_optional_value",
+        serialize_with = "serialize_optional_value"
     )]
     pub wal_dir: Option<PathBuf>,
 
@@ -655,8 +655,8 @@ pub struct StatesyncConfig {
     /// For Cosmos SDK-based chains, trust-period should usually be about 2/3 of the unbonding time
     /// (~2 weeks) during which they can be financially punished (slashed) for misbehavior.
     #[serde(
-    serialize_with = "serialize_comma_separated_list",
-    deserialize_with = "deserialize_comma_separated_list"
+        serialize_with = "serialize_comma_separated_list",
+        deserialize_with = "deserialize_comma_separated_list"
     )]
     pub rpc_servers: Vec<String>,
 
