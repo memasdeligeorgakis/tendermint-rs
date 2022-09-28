@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::event::Event;
 use crate::prelude::*;
+use crate::query::Query;
 
 /// Request ABCI events.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -17,8 +18,10 @@ pub struct Request {
 impl Request {
     /// Query the Tendermint events with the given `query` until
     /// `timeout` expires.
-    pub fn new(query: String, max_wait_time: Duration) -> Self {
+    pub fn new(query: Query, max_wait_time: Duration) -> Self {
+        let query = query.to_string();
         let max_wait_time = format!("{}s", max_wait_time.as_secs());
+
         Self {
             query,
             max_wait_time,
