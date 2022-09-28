@@ -273,6 +273,14 @@ pub trait Client {
             .await
     }
 
+    /// `/events`: get ABCI events from Tendermint.
+    async fn events<T>(&self, query: Query, timeout: T) -> Result<events::Response, Error>
+    where
+        T: Into<Duration> + Send,
+    {
+        self.perform(events::Request::new(query, timeout.into())).await
+    }
+
     /// Poll the `/health` endpoint until it returns a successful result or
     /// the given `timeout` has elapsed.
     async fn wait_until_healthy<T>(&self, timeout: T) -> Result<(), Error>
