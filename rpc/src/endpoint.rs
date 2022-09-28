@@ -10,6 +10,7 @@ pub mod broadcast;
 pub mod commit;
 pub mod consensus_params;
 pub mod consensus_state;
+pub mod events;
 pub mod evidence;
 pub mod genesis;
 pub mod health;
