@@ -200,6 +200,7 @@ mod sealed {
             request: R,
         ) -> Result<hyper::Request<hyper::Body>, Error> {
             let request_body = request.into_json();
+            tracing::debug!("Outgoing request: {}", request_body);
 
             let mut request = hyper::Request::builder()
                 .method("POST")
