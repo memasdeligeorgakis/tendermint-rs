@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 /// Genesis data
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Genesis<AppState = serde_json::Value> {
+pub struct Genesis<AppState: Default = serde_json::Value> {
     /// Time of genesis
     pub genesis_time: Time,
 
@@ -30,5 +30,6 @@ pub struct Genesis<AppState = serde_json::Value> {
     pub app_hash: Vec<u8>,
 
     /// App state
+    #[serde(default)]
     pub app_state: AppState,
 }

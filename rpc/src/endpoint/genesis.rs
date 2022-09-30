@@ -17,7 +17,7 @@ impl<AppState> Default for Request<AppState> {
 
 impl<AppState> crate::Request for Request<AppState>
 where
-    AppState: fmt::Debug + Serialize + DeserializeOwned + Send,
+    AppState: fmt::Debug + Default + Serialize + DeserializeOwned + Send,
 {
     type Response = Response<AppState>;
 
@@ -27,15 +27,21 @@ where
 }
 
 impl<AppState> crate::SimpleRequest for Request<AppState> where
-    AppState: fmt::Debug + Serialize + DeserializeOwned + Send
+    AppState: fmt::Debug + Default + Serialize + DeserializeOwned + Send
 {
 }
 
 /// Block responses
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Response<AppState> {
+pub struct Response<AppState>
+where
+    AppState: Default,
+{
     /// Genesis data
     pub genesis: Genesis<AppState>,
 }
 
-impl<AppState> crate::Response for Response<AppState> where AppState: Serialize + DeserializeOwned {}
+impl<AppState> crate::Response for Response<AppState> where
+    AppState: Default + Serialize + DeserializeOwned
+{
+}
