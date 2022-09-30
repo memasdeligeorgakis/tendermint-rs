@@ -9,6 +9,7 @@ use std::io::Read;
 pub trait Response: Serialize + DeserializeOwned + Sized {
     /// Parse a JSON-RPC response from a JSON string
     fn from_string(response: impl AsRef<[u8]>) -> Result<Self, Error> {
+        tracing::warn!("Response from Tendermint received");
         let wrapper: Wrapper<Self> =
             serde_json::from_slice(response.as_ref()).map_err(Error::serde)?;
         wrapper.into_result()
