@@ -234,7 +234,7 @@ pub trait Client {
     /// `/genesis`: get genesis file.
     async fn genesis<AppState>(&self) -> Result<Genesis<AppState>, Error>
     where
-        AppState: fmt::Debug + Serialize + DeserializeOwned + Send,
+        AppState: fmt::Debug + Default + Serialize + DeserializeOwned + Send,
     {
         Ok(self.perform(genesis::Request::default()).await?.genesis)
     }
