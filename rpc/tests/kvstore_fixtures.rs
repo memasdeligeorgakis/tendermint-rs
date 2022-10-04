@@ -706,19 +706,35 @@ fn incoming_fixtures() {
             "consensus_params" => {
                 let result = endpoint::consensus_params::Response::from_string(content).unwrap();
                 assert_eq!(u64::from(result.block_height), 10_u64);
-                assert_eq!(result.consensus_params.block.max_bytes, 22020096_u64);
-                assert_eq!(result.consensus_params.block.max_gas, -1_i64);
                 assert_eq!(
-                    result.consensus_params.evidence.max_age_duration,
+                    result.consensus_params.block.clone().unwrap().max_bytes,
+                    22020096_u64
+                );
+                assert_eq!(result.consensus_params.block.unwrap().max_gas, -1_i64);
+                assert_eq!(
+                    result
+                        .consensus_params
+                        .evidence
+                        .clone()
+                        .unwrap()
+                        .max_age_duration,
                     Duration(core::time::Duration::from_nanos(172800000000000_u64))
                 );
                 assert_eq!(
-                    result.consensus_params.evidence.max_age_num_blocks,
+                    result
+                        .consensus_params
+                        .evidence
+                        .clone()
+                        .unwrap()
+                        .max_age_num_blocks,
                     100000_u64
                 );
-                assert_eq!(result.consensus_params.evidence.max_bytes, 1048576_i64);
                 assert_eq!(
-                    result.consensus_params.validator.pub_key_types,
+                    result.consensus_params.evidence.unwrap().max_bytes,
+                    1048576_i64
+                );
+                assert_eq!(
+                    result.consensus_params.validator.unwrap().pub_key_types,
                     vec![public_key::Algorithm::Ed25519]
                 );
             }
@@ -731,34 +747,61 @@ fn incoming_fixtures() {
                         .unwrap();
                 assert!(result.genesis.app_hash.is_empty());
                 assert_eq!(result.genesis.chain_id.as_str(), CHAIN_ID);
-                assert_eq!(result.genesis.consensus_params.block.max_bytes, 22020096);
-                assert_eq!(result.genesis.consensus_params.block.max_gas, -1);
+                assert_eq!(
+                    result
+                        .genesis
+                        .consensus_params
+                        .block
+                        .clone()
+                        .unwrap()
+                        .max_bytes,
+                    22020096
+                );
+                assert_eq!(result.genesis.consensus_params.block.unwrap().max_gas, -1);
                 assert_eq!(
                     result
                         .genesis
                         .consensus_params
                         .evidence
+                        .clone()
+                        .unwrap()
                         .max_age_duration
                         .0
                         .as_nanos(),
                     172800000000000
                 );
                 assert_eq!(
-                    result.genesis.consensus_params.evidence.max_age_num_blocks,
+                    result
+                        .genesis
+                        .consensus_params
+                        .evidence
+                        .clone()
+                        .unwrap()
+                        .max_age_num_blocks,
                     100000
                 );
-                assert_eq!(result.genesis.consensus_params.evidence.max_bytes, 1048576);
+                assert_eq!(
+                    result.genesis.consensus_params.evidence.unwrap().max_bytes,
+                    1048576
+                );
                 assert_eq!(
                     result
                         .genesis
                         .consensus_params
                         .validator
+                        .clone()
+                        .unwrap()
                         .pub_key_types
                         .len(),
                     1
                 );
                 assert_eq!(
-                    result.genesis.consensus_params.validator.pub_key_types[0],
+                    result
+                        .genesis
+                        .consensus_params
+                        .validator
+                        .unwrap()
+                        .pub_key_types[0],
                     tendermint::public_key::Algorithm::Ed25519
                 );
                 assert!(result.genesis.consensus_params.version.is_none());

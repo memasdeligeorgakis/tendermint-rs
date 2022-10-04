@@ -49,6 +49,9 @@ pub enum Method {
     /// Get consensus state
     ConsensusState,
 
+    /// Get ABCI events
+    Events,
+
     /// Get genesis file
     Genesis,
 
@@ -97,6 +100,7 @@ impl Method {
             Method::Commit => "commit",
             Method::ConsensusParams => "consensus_params",
             Method::ConsensusState => "consensus_state",
+            Method::Events => "events",
             Method::Genesis => "genesis",
             Method::Health => "health",
             Method::NetInfo => "net_info",
@@ -128,6 +132,7 @@ impl FromStr for Method {
             "commit" => Method::Commit,
             "consensus_params" => Method::ConsensusParams,
             "consensus_state" => Method::ConsensusState,
+            "events" => Method::Events,
             "genesis" => Method::Genesis,
             "health" => Method::Health,
             "net_info" => Method::NetInfo,
