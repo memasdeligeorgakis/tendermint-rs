@@ -278,7 +278,8 @@ pub trait Client {
     where
         T: Into<Duration> + Send,
     {
-        self.perform(events::Request::new(query, timeout.into())).await
+        self.perform(events::Request::new(query, timeout.into()))
+            .await
     }
 
     /// Poll the `/health` endpoint until it returns a successful result or
