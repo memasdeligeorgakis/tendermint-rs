@@ -585,6 +585,9 @@ pub struct ConsensusConfig {
 
     /// Reactor query sleep duration
     pub peer_query_maj23_sleep_duration: Timeout,
+
+    /// Commit timeout
+    pub timeout_commit: Timeout,
 }
 
 /// transactions indexer configuration options
