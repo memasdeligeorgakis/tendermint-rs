@@ -76,7 +76,7 @@ pub struct DeliverTx {
 }
 
 /// Event
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Event {
     /// Event type
     #[serde(rename = "type")]
@@ -92,7 +92,7 @@ pub struct Event {
 ///
 /// <https://github.com/tendermint/tendermint/blob/develop/abci/types/types.proto>
 // TODO(tarcieri): generate this automatically from the proto
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct BeginBlock {
     /// Tags
     #[serde(default)]
@@ -105,7 +105,7 @@ pub struct BeginBlock {
 ///
 /// <https://github.com/tendermint/tendermint/blob/develop/abci/types/types.proto>
 // TODO(tarcieri): generate this automatically from the proto
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct EndBlock {
     /// Validator updates
     #[serde(deserialize_with = "deserialize_validator_updates")]

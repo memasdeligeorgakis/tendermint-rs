@@ -10,7 +10,7 @@ use tendermint_proto::Error as ProtobufError;
 use tendermint_proto::Protobuf;
 
 /// SignVoteRequest is a request to sign a vote
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, Eq)]
 pub struct SignVoteRequest {
     /// Vote
     pub vote: Vote,
