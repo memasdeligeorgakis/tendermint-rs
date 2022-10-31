@@ -93,11 +93,14 @@ impl CommitValidator for ProdCommitValidator {
                 } => validator_address,
             };
 
-            if validator_set.validator(*validator_address) == None {
-                return Err(VerificationError::faulty_signer(
-                    *validator_address,
-                    self.hasher.hash_validator_set(validator_set),
-                ));
+            match validator_set.validator(*validator_address) {
+                None => {
+                    return Err(VerificationError::faulty_signer(
+                        *validator_address,
+                        self.hasher.hash_validator_set(validator_set),
+                    ))
+                }
+                Some(_) => (),
             }
         }
 
