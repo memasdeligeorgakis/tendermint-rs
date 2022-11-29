@@ -117,7 +117,7 @@ impl Set {
 
     /// Sort the validators according to the current Tendermint requirements
     /// (v. 0.34 -> first by validator power, descending, then by address, ascending)
-    fn sort_validators(vals: &mut Vec<Info>) {
+    fn sort_validators(vals: &mut [Info]) {
         vals.sort_by_key(|v| (core::cmp::Reverse(v.power), v.address));
     }
 
@@ -315,7 +315,7 @@ impl ProposerPriority {
 }
 
 /// Updates to the validator set
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Update {
     /// Validator public key
     #[serde(deserialize_with = "deserialize_public_key")]

@@ -1,6 +1,6 @@
 // This file is copied from <http://github.com/tendermint/abci>
 // NOTE: When using custom types, mind the warnings.
-// <https://github.com/gogo/protobuf/blob/master/custom_types.md#warnings-and-issues>
+// <https://github.com/cosmos/gogoproto/blob/master/custom_types.md#warnings-and-issues>
 
 //----------------------------------------
 // Request types

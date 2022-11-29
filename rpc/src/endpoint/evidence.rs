@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use tendermint::{abci::transaction, evidence::Evidence};
 
 /// `/broadcast_evidence`: broadcast an evidence.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize, Eq)]
 pub struct Request {
     /// Evidence to broadcast
     pub ev: Evidence,

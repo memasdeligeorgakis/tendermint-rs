@@ -33,7 +33,7 @@ use tendermint::{block::signed_header::SignedHeader, Hash};
 ///     }
 /// }
 /// ```
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
 pub struct TmLightBlock {
     /// Header and commit of this block
     pub signed_header: SignedHeader,

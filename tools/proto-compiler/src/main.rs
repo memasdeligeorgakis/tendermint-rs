@@ -49,16 +49,17 @@ fn main() {
     ); // This panics if it fails.
 
     get_commitish(
-        &PathBuf::from(&tendermint_dir).join("third_party"),
+        &PathBuf::from(&tendermint_dir).join("third_party").join("gogoproto"),
         GOGO_REPO,
-GOGO_COMMITISH,
+        GOGO_COMMITISH,
     ); // This panics if it fails.
 
     let proto_paths = vec![tendermint_dir.join("proto")];
     let proto_includes_paths = vec![
         tendermint_dir.join("proto"),
-        tendermint_dir.join("third_party"),
+        tendermint_dir.join("third_party").join("gogoproto"),
     ];
+
     // List available proto files
     let protos = find_proto_files(proto_paths);
 

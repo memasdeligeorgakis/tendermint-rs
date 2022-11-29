@@ -21,7 +21,7 @@ use tendermint_proto::types::Proposal as RawProposal;
 use tendermint_proto::{Error as ProtobufError, Protobuf};
 
 /// Proposal
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, Eq)]
 pub struct Proposal {
     /// Proposal message type
     pub msg_type: Type,

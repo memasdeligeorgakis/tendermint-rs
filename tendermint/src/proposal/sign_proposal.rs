@@ -11,7 +11,7 @@ use tendermint_proto::Error as ProtobufError;
 use tendermint_proto::Protobuf;
 
 /// SignProposalRequest is a request to sign a proposal
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, Eq)]
 pub struct SignProposalRequest {
     /// Proposal
     pub proposal: Proposal,

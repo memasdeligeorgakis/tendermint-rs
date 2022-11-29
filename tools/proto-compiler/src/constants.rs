@@ -6,10 +6,10 @@ pub const TENDERMINT_REPO: &str = "https://github.com/tendermint/tendermint";
 // Tag: v0.34.0-rc4
 // Branch: master
 // Commit ID (full length): d7d0ffea13c60c98b812d243ba5a2c375f341c15
-pub const TENDERMINT_COMMITISH: &str = "v0.37.x";
+pub const TENDERMINT_COMMITISH: &str = "v0.37.0-rc1";
 /// Gogo repository URL
-pub const GOGO_REPO: &str = "https://github.com/gogo/protobuf";
-pub const GOGO_COMMITISH: &str = "v1.3.2";
+pub const GOGO_REPO: &str = "https://github.com/cosmos/gogoproto";
+pub const GOGO_COMMITISH: &str = "v1.4.2";
 
 /// Predefined custom attributes for message annotations
 const PRIMITIVE_ENUM: &str = r#"#[derive(::num_derive::FromPrimitive, ::num_derive::ToPrimitive)]"#;

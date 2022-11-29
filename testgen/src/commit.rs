@@ -128,18 +128,17 @@ impl Generator<block::Commit> for Commit {
 
         let vote_to_sig = |v: &Vote| -> Result<block::CommitSig, SimpleError> {
             let vote = v.generate()?;
-            if vote.block_id == None {
-                Ok(block::CommitSig::BlockIdFlagNil {
+            match vote.block_id {
+                None => Ok(block::CommitSig::BlockIdFlagNil {
                     validator_address: vote.validator_address,
                     timestamp: vote.timestamp.unwrap(),
                     signature: vote.signature,
-                })
-            } else {
-                Ok(block::CommitSig::BlockIdFlagCommit {
+                }),
+                Some(_) => Ok(block::CommitSig::BlockIdFlagCommit {
                     validator_address: vote.validator_address,
                     timestamp: vote.timestamp.unwrap(),
                     signature: vote.signature,
-                })
+                }),
             }
         };
         let val_to_sig = |val: &Validator| -> Result<block::CommitSig, SimpleError> {
