@@ -29,6 +29,11 @@ use tendermint::abci::{self, Transaction};
 use tendermint::block::Height;
 use tendermint::evidence::Evidence;
 use tendermint::Genesis;
+
+#[cfg(feature = "tokio-for-wasm")]
+use tokio_for_wasm::time;
+
+#[cfg(not(feature = "tokio-for-wasm"))]
 use tokio::time;
 
 /// Provides lightweight access to the Tendermint RPC. It gives access to all

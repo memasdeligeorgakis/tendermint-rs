@@ -147,8 +147,15 @@ impl MockClientDriver {
     }
 
     pub async fn run(mut self) -> Result<(), Error> {
+        #[cfg(feature = "tokio-for-wasm")]
+        use tokio_for_wasm::select;
+
+        #[cfg(not(feature = "tokio-for-wasm"))]
+        use tokio::select;
+
+
         loop {
-            tokio::select! {
+            select! {
             Some(cmd) = self.rx.recv() => match cmd {
                     DriverCommand::Subscribe { id, query, subscription_tx, result_tx } => {
                         self.subscribe(id, query, subscription_tx, result_tx);

@@ -9,7 +9,13 @@ use core::pin::Pin;
 use futures::task::{Context, Poll};
 use futures::Stream;
 use pin_project::pin_project;
+
+#[cfg(feature = "tokio-for-wasm")]
+use tokio_for_wasm::sync::mpsc;
+
+#[cfg(not(feature = "tokio-for-wasm"))]
 use tokio::sync::mpsc;
+
 
 use crate::Error;
 
