@@ -30,6 +30,7 @@ required-features = [ "cli" ]
 
 [features]
 default = ["flex-error/std", "flex-error/eyre_tracer"]
+only-client = []
 cli = [
   "http-client",
   "structopt",

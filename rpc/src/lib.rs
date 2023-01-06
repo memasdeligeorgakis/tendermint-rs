@@ -32,6 +32,12 @@ extern crate std;
 
 mod prelude;
 
+#[cfg(feature = "only-client")]
+mod client;
+#[cfg(feature = "only-client")]
+pub use client::Client;
+
+
 #[cfg(any(feature = "http-client", feature = "websocket-client"))]
 mod client;
 #[cfg(any(feature = "http-client", feature = "websocket-client"))]
