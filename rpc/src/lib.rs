@@ -35,7 +35,8 @@ mod prelude;
 #[cfg(feature = "only-client")]
 mod client;
 #[cfg(feature = "only-client")]
-pub use client::Client;
+pub use client::{Subscription,
+    SubscriptionClient, Client};
 
 
 #[cfg(any(feature = "http-client", feature = "websocket-client"))]

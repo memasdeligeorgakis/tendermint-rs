@@ -216,7 +216,13 @@ impl Clone for Error {
     }
 }
 
-#[cfg(feature = "tokio")]
+#[cfg(feature = "tokio-for-wasm")]
+use tokio_for_wasm as tokio;
+
+#[cfg(not(feature = "tokio-for-wasm"))]
+use tokio::sync::mpsc;
+
+#[cfg(any(feature = "tokio", feature = "tokio-for-wasm"))]
 impl Error {
     pub fn send<T>(_: tokio::sync::mpsc::error::SendError<T>) -> Error {
         Error::channel_send()
